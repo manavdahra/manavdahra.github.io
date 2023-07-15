@@ -2,6 +2,7 @@
   "name": "manavdahra.github.io",
   "version": "1.0.0",
   "description": "Portfolio",
+  "private": "true",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -20,7 +21,9 @@
   },
   "homepage": "https://github.com/manavdahra/manavdahra.github.io#readme",
   "devDependencies": {
-    "vite": "^4.3.9"
+    "vite": "^4.3.9",
+    "webpack": "^5.88.1",
+    "webpack-cli": "^5.1.4"
   },
   "dependencies": {
     "three": "^0.154.0"
