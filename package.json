@@ -1,0 +1,28 @@
+{
+  "name": "manavdahra.github.io",
+  "version": "1.0.0",
+  "description": "Portfolio",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manavdahra/manavdahra.github.io.git"
+  },
+  "keywords": [
+    "Portfolio"
+  ],
+  "author": "Manav Dahra",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/manavdahra/manavdahra.github.io/issues"
+  },
+  "homepage": "https://github.com/manavdahra/manavdahra.github.io#readme",
+  "devDependencies": {
+    "vite": "^4.3.9"
+  },
+  "dependencies": {
+    "three": "^0.154.0"
+  }
+}

@@ -1,0 +1,101 @@
+@font-face {
+    font-family: 'dev-font-regular';
+    src: url('./assets/fonts/JetBrainsMono-Regular.ttf');
+}
+@font-face {
+    font-family: 'dev-font-heading';
+    src: url('./assets/fonts/JetBrainsMono-ExtraBold.ttf');
+}
+@font-face {
+    font-family: 'dev-font-medium';
+    src: url('./assets/fonts/JetBrainsMono-Medium.ttf');
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+#intro-description {
+    font-family: 'dev-font-medium';
+    font-size: 1em;
+    color: #989285;
+}
+
+.canvas {
+    min-height: 500px;
+}
+
+.icon {
+    width: 24px;
+    height: 24px;
+    position: relative;
+    bottom: -5px;
+}
+
+body {
+    background-color: #213636;
+    display: block;
+    font-size: 1em;
+    color: #989285;
+    margin: 1%;
+    padding: 0;
+    font-family: 'dev-font-medium';
+}
+
+header {
+    font-family: 'dev-font-heading';
+    font-size: 2em;
+    padding: 1%;
+    text-align: center;
+}
+
+h1 {
+    margin: 0;
+}
+
+.sidenav {
+    height: 100%; /* 100% Full-height */
+    width: 5%;
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Stay on top */
+    top: 0; /* Stay at the top */
+    left: 0;
+    background-color: #1f2127; /* Black*/
+    overflow-x: hidden; /* Disable horizontal scroll */
+    padding: 2%; /* Place content 60px from the top */
+    /* transition: 1s; /* 1 second transition effect to slide in the sidenav */
+}
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+ul li {
+    margin-bottom: 10px;
+    padding-bottom: 50%;
+}
+
+ul li a {
+    color: inherit;
+}
+
+article {
+    margin-left: 10%;
+    padding: 3%;
+}
+
+article p {
+    line-height: 1.5;
+}
+
+footer {
+    font-family: 'dev-font-regular';
+    text-align: center;
+    font-size: 1em;
+    grid-column-start: 1;
+    grid-column-end: 3;
+    padding: 20px;
+    clear: both;
+}

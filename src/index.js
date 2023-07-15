@@ -1,25 +1,91 @@
-import * as THREE from 'three';
+import { 
+	Scene, 
+	PerspectiveCamera, 
+	WebGLRenderer, 
+	PlaneGeometry, 
+	Mesh, 
+	DoubleSide, 
+	MeshLambertMaterial,
+	AmbientLight,
+	Group,
+	Color,
+	GridHelper,
+ } from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls';
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+class Game {
+	constructor(props) {
+		this.canvasContainer = props.canvasContainer;
+		this.scene = new Scene();
+		this.scene.background = new Color('#1f2127');
+		
+		this.addRenderers();
+		this.setupScene();
 
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize( window.innerWidth, window.innerHeight );
-document.body.appendChild( renderer.domElement );
+		this.camera = new PerspectiveCamera( 75, this.canvasContainer.clientWidth / this.canvasContainer.clientHeight, 0.1, 1000 );
+		this.camera.position.set(5, 5, 5);
+		this.controls = new OrbitControls( this.camera, this.renderer.domElement );
 
-const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-const cube = new THREE.Mesh( geometry, material );
-scene.add( cube );
+		window.addEventListener( 'resize', () => this.onWindowResize() );
+	}
 
-camera.position.z = 5;
+	setupScene() {
+		this.addLights();
+		this.addPlane();
+	}
 
-function animate() {
-	requestAnimationFrame( animate );
+	addRenderers() {
+		this.renderer = new WebGLRenderer({ antialias: true });
+		this.renderer.setSize( this.canvasContainer.clientWidth, this.canvasContainer.clientHeight );
+		this.canvasContainer.appendChild( this.renderer.domElement );
+	}
 
-    cube.rotation.x += 0.01;
-	cube.rotation.y += 0.01;
-    
-	renderer.render( scene, camera );
+	addLights() {
+		const light = new AmbientLight( 0xAEAEA0, 100 );
+		this.scene.add( light );
+	}
+	
+	addPlane() {
+		const plane = new Group();
+		const grid = new GridHelper( 20, 20 );
+
+		const geometry = new PlaneGeometry( 20, 20, 20, 20 );
+		geometry.rotateX(-Math.PI/2);
+	
+		const material = new MeshLambertMaterial( { side: DoubleSide } );
+		const planeObject = new Mesh( geometry, material );
+		
+		plane.add( grid );
+		plane.add( planeObject );
+		
+		this.scene.add( plane );
+	}
+
+	onWindowResize() {
+		this.camera.aspect = this.canvasContainer.clientWidth / this.canvasContainer.clientHeight;
+		this.camera.updateProjectionMatrix();
+
+		this.renderer.setSize( this.canvasContainer.clientWidth, this.canvasContainer.clientHeight );
+
+		this.render();
+	}
+	
+	run() {
+		requestAnimationFrame( () => this.run() );
+		
+		this.onWindowResize();
+		
+		this.controls.update();
+	
+		this.render();
+	}
+
+	render() {
+		this.renderer.render( this.scene, this.camera );
+	}
 }
-animate();
+
+const canvasContainer = document.getElementById( 'intro-canvas' );
+const game = new Game({ canvasContainer });
+game.run();
+
