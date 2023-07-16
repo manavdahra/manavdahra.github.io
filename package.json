@@ -22,6 +22,8 @@
   },
   "homepage": "https://github.com/manavdahra/manavdahra.github.io#readme",
   "devDependencies": {
+    "css-loader": "^6.8.1",
+    "style-loader": "^3.3.3",
     "vite": "^4.3.9",
     "webpack": "^5.88.1",
     "webpack-cli": "^5.1.4"

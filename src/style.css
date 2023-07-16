@@ -97,10 +97,18 @@ h1 {
 }
 
 .icon {
-    width: 24px;
-    height: 24px;
     position: relative;
     bottom: -5px;
+    width: 24px;
+    height: 24px;
+}
+
+.github {
+    content: url('./assets/icons/github.svg');
+}
+
+.linkedIn {
+    content: url('./assets/icons/linkedIn.png');
 }
 
 

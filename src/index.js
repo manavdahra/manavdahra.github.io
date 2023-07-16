@@ -12,6 +12,7 @@ import {
 	GridHelper,
  } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls';
+import './style.css';
 
 class Game {
 	constructor(props) {
