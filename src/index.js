@@ -89,3 +89,8 @@ const canvasContainer = document.getElementById( 'intro-canvas' );
 const game = new Game({ canvasContainer });
 game.run();
 
+window.onClickNavBarItem = (element) => {
+	const elements = document.getElementsByClassName( 'active' );
+	for (let element of elements) { element.classList.remove( 'active' ); }
+	element.classList.add( 'active' );
+}

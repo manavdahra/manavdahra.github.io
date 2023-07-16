@@ -34,14 +34,26 @@ body {
     left: 0;
     background-color: #1f2127; /* Black*/
     overflow-x: hidden; /* Disable horizontal scroll */
-    padding: 2%; /* Place content 60px from the top */
+    display: flex;
+    flex-direction: column;
+    row-gap: 10%;
+    padding: 1%;
+    align-items: center;
 }
 
 .sidenav a {
+    text-align: center;
     text-decoration: none;
     color: inherit;
-    padding-bottom: 50%;
-    display: block;
+    display: flex;
+}
+
+.sidenav a:hover {
+    color: #828631;
+}
+
+.sidenav .active {
+    color: #828631;
 }
 
 header {
@@ -107,6 +119,7 @@ footer {
         height: 5%;
         width: 100%;
         position: fixed;
+        flex-direction: row;
     }
     .sidenav a { float: left; padding: 2%; }
     div.content { margin-top: 15%; margin-left: 0; }
