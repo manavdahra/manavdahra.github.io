@@ -15,23 +15,6 @@ html {
     scroll-behavior: smooth;
 }
 
-#intro-description {
-    font-family: 'dev-font-medium';
-    font-size: 1em;
-    color: #989285;
-}
-
-.canvas {
-    min-height: 500px;
-}
-
-.icon {
-    width: 24px;
-    height: 24px;
-    position: relative;
-    bottom: -5px;
-}
-
 body {
     background-color: #213636;
     display: block;
@@ -40,17 +23,6 @@ body {
     margin: 1%;
     padding: 0;
     font-family: 'dev-font-medium';
-}
-
-header {
-    font-family: 'dev-font-heading';
-    font-size: 2em;
-    padding: 1%;
-    text-align: center;
-}
-
-h1 {
-    margin: 0;
 }
 
 .sidenav {
@@ -63,32 +35,62 @@ h1 {
     background-color: #1f2127; /* Black*/
     overflow-x: hidden; /* Disable horizontal scroll */
     padding: 2%; /* Place content 60px from the top */
-    /* transition: 1s; /* 1 second transition effect to slide in the sidenav */
 }
 
-ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-}
-
-ul li {
-    margin-bottom: 10px;
-    padding-bottom: 50%;
-}
-
-ul li a {
+.sidenav a {
+    text-decoration: none;
     color: inherit;
+    padding-bottom: 50%;
+    display: block;
 }
 
-article {
+header {
+    font-size: 3em;
+    text-align: center;
+}
+
+.content {
     margin-left: 10%;
-    padding: 3%;
 }
 
-article p {
+.content p {
     line-height: 1.5;
 }
+
+h1 {
+    margin: 0;
+    font-family: 'dev-font-medium';
+}
+
+.about-me {
+    text-align: center;
+}
+
+.intro-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.intro-description {
+    font-family: 'dev-font-medium';
+    font-size: 1em;
+    color: inherit;
+    width: 50%;
+    padding: 1%;
+}
+
+.intro-canvas {
+    width: 50%;
+    min-height: 500px;
+}
+
+.icon {
+    width: 24px;
+    height: 24px;
+    position: relative;
+    bottom: -5px;
+}
+
 
 footer {
     font-family: 'dev-font-regular';
@@ -98,4 +100,17 @@ footer {
     grid-column-end: 3;
     padding: 20px;
     clear: both;
+}
+
+@media screen and (max-width: 700px) {
+    .sidenav {
+        height: 5%;
+        width: 100%;
+        position: fixed;
+    }
+    .sidenav a { float: left; padding: 2%; }
+    div.content { margin-top: 15%; margin-left: 0; }
+    div.intro-container { flex-direction: column; }
+    div.intro-description { width: 100%; }
+    div.intro-canvas { width: 100%; }
 }
