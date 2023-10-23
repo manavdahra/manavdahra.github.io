@@ -25,6 +25,10 @@ body {
     font-family: 'dev-font-medium';
 }
 
+.link {
+    color: #bdb76b;
+}
+
 .sidenav {
     height: 100%; /* 100% Full-height */
     width: 5%;
