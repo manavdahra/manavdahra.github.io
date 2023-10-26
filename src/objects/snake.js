@@ -1,5 +1,5 @@
-import { Group, BoxGeometry, MeshLambertMaterial, Mesh, Vector3, DoubleSide } from "three";
-import { DistanceConstraint, Vec3, Box, Body, Material, Quaternion } from "cannon-es";
+import { Group, BoxGeometry, MeshLambertMaterial, Mesh, Vector3, DoubleSide, SphereGeometry } from "three";
+import { DistanceConstraint, LockConstraint, ConeTwistConstraint, HingeConstraint, Vec3, Box, Body, Material, Quaternion } from "cannon-es";
 
 export default class Snake extends Group {
     constructor(props) {
@@ -11,14 +11,13 @@ export default class Snake extends Group {
         this.yAxis = new Vec3(0, 1, 0);
         this.direction = new Quaternion(0, 1, 0, 0);
         this.thickness = thickness;
-        this.force = new Vec3(0, 0, -5);
+        this.velocity = new Vec3(0, 0, -6);
         this.parts = [];
         this.contraints = [];
         for (let index = 0; index < length; index++) {
             const position = new Vector3(0, 1, index * thickness * (1 + spacing));
-            const part = this.addCube(position);
+            const part = this.addCube(index, position);
             this.add(part.object);
-            // this.add(camera);
             this.parts.push(part);
         }
 
@@ -27,14 +26,20 @@ export default class Snake extends Group {
             const next = this.parts[index+1];
             
             this.contraints.push(
-                new DistanceConstraint(curr.body, next.body, thickness + spacing)
+                new DistanceConstraint(curr.body, next.body, thickness + spacing*2)
             );
         }
     }
 
-    addCube(position) {
-        const geometry = new BoxGeometry(this.thickness, this.thickness, this.thickness);
-        const material = new MeshLambertMaterial({ side: DoubleSide, color: 0xAAff00, visible: false });
+    addCube(index, position) {
+        let geometry = null;
+        if (index == 0) {
+            geometry = new SphereGeometry(0.75*this.thickness);
+            geometry.scale(1, 1, 1.1);
+        } else {
+            geometry = new BoxGeometry(this.thickness, this.thickness, this.thickness);
+        }
+        const material = new MeshLambertMaterial({ side: DoubleSide, color: 0xAAff00, visible: true });
         const object = new Mesh(geometry, material);
         object.position.set(position.x, position.y, position.z);
         object.castShadow = true;
@@ -48,9 +53,6 @@ export default class Snake extends Group {
 
     setState(pressed) {
         this.pressed = pressed;
-        setTimeout(() => {
-            this.pressed = '';
-        }, 1000);
     }
 
     getHead() {
@@ -67,13 +69,14 @@ export default class Snake extends Group {
         }
         this.direction.setFromAxisAngle(this.yAxis, angle);
         const head = this.getHead();
-        head.body.quaternion = this.direction.mult(head.body.quaternion);
-        let velocity = head.body.quaternion.vmult(this.force);
+        const newQ = this.direction.mult(head.body.quaternion);
+        head.body.quaternion = newQ;
+        let velocity = head.body.quaternion.vmult(this.velocity);
         head.body.velocity.x = velocity.x;
         head.body.velocity.z = velocity.z;
         this.parts.forEach(({ object, body }) => {
-			object.position.copy(body.position);
-			object.quaternion.copy(body.quaternion);
+            object.position.copy(body.position, delta);
+			object.quaternion.copy(body.quaternion, delta);
 		});
     }
 }

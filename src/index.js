@@ -9,7 +9,6 @@ import {
 	Vector3,
 	PCFSoftShadowMap,
 } from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import CannonDebugger from 'cannon-es-debugger';
 import * as CANNON from 'cannon-es';
 
@@ -25,7 +24,6 @@ class Game {
 		this.scene = new Scene();
 		this.scene.background = new Color('#1f2127');
 		this.clock = new Clock();
-		this.cameraOffset = new Vector3(0, 5, 7);
 		this.delta = 0;
 
 		this.initCannon();
@@ -33,13 +31,11 @@ class Game {
 		this.setupScene();
 
 		this.camera = new PerspectiveCamera(75, this.canvasContainer.clientWidth / this.canvasContainer.clientHeight, 1, 35);
-		if (this.debug) {
-			this.camera.position.copy(this.cameraOffset);
-			this.controls = new OrbitControls( this.camera, this.renderer.domElement );
-			this.controls.target.set(0, 0, 0);
-		}
+		this.offset = new Vector3();
+		this.lookAt = new Vector3();
 
 		document.addEventListener('keydown', (e) => this.onKeyDown(e), false);
+		document.addEventListener('keyup', (e) => this.onKeyUp(e), false);
 		window.addEventListener('resize', () => this.onWindowResize());
 	}
 
@@ -77,10 +73,10 @@ class Game {
 	}
 
 	addSnake() {
-		this.snake = new Snake({ thickness: 0.5, length: 1 });
+		this.snake = new Snake({ thickness: 0.5, length: 5 });
 		this.snake.parts.forEach(({ body }) => {
 			this.world.addBody(body);
-			this.world.addContactMaterial(new CANNON.ContactMaterial(body.material, this.plane.groundBody.material, { friction: 0 }));
+			this.world.addContactMaterial(new CANNON.ContactMaterial(body.material, this.plane.groundBody.material, { friction: 0.02 }));
 		});
 		this.snake.contraints.forEach(con => {
 			this.world.addConstraint(con);
@@ -108,10 +104,6 @@ class Game {
 
 		this.delta = this.clock.getDelta();
 		this.updateCamera();
-		
-		if (this.debug) {
-			this.controls.update();
-		}
 
 		this.updatePhysics();
 		this.render();
@@ -121,15 +113,35 @@ class Game {
 		this.snake.setState(e.code);
 	}
 
+	onKeyUp() {
+		this.snake.setState('');
+	}
+
+	idealOffset(head) {
+		const offset = new Vector3(0, 5, 7);
+		offset.applyQuaternion(head.object.quaternion);
+		offset.add(head.object.position);
+		return offset;
+	}
+
+	idealLookAt(head) {
+		const lookAt = new Vector3(0, 0, -10);
+		lookAt.applyQuaternion(head.object.quaternion);
+		lookAt.add(head.object.position);
+		return lookAt;
+	}
+
 	updateCamera() {
-		const snakeWorldPosition = new Vector3();
 		const head = this.snake.getHead();
-		head.object.getWorldPosition(snakeWorldPosition);
 		
-		if (!this.debug) {
-			this.camera.lookAt(snakeWorldPosition);
-			this.camera.position.copy(snakeWorldPosition).add(this.cameraOffset);
-		}
+		const idealOffset = this.idealOffset(head);
+		const idealLookAt = this.idealLookAt(head);
+		
+		this.offset = this.offset.lerp(idealOffset, this.delta*4);
+		this.lookAt = this.lookAt.lerp(idealLookAt, this.delta*4);
+
+		this.camera.lookAt(this.lookAt);
+		this.camera.position.copy(this.offset);
 	}
 
 	updatePhysics() {
@@ -137,7 +149,9 @@ class Game {
 
 		this.snake.update(this.delta);
 		this.plane.update(this.delta);
-		this.cannonDebugger.update();
+		if (this.debug) {
+			this.cannonDebugger.update();
+		}
 	}
 
 	render() {
@@ -146,7 +160,7 @@ class Game {
 }
 
 const canvasContainer = document.getElementById('intro-canvas');
-const game = new Game({ canvasContainer });
+const game = new Game({ canvasContainer, debug: false });
 game.run();
 
 window.onClickNavBarItem = (element) => {

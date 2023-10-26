@@ -5,7 +5,7 @@ export default class Ground extends Group {
     constructor(props) {
         super(props);
         const geometry = new PlaneGeometry(100, 100);
-        const material = new MeshLambertMaterial({ side: DoubleSide, color: 0xFFFFFF, visible: false });
+        const material = new MeshLambertMaterial({ side: DoubleSide, color: 0xFFFFFF, visible: true });
         const planeMesh = new Mesh(geometry, material);
         planeMesh.receiveShadow = true;
 
