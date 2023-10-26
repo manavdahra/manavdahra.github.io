@@ -1,5 +1,5 @@
-import { Group, BoxGeometry, MeshLambertMaterial, Mesh, Vector3, DoubleSide, SphereGeometry } from "three";
-import { DistanceConstraint, LockConstraint, ConeTwistConstraint, HingeConstraint, Vec3, Box, Body, Material, Quaternion } from "cannon-es";
+import { Group, BoxGeometry, MeshLambertMaterial, Mesh, Vector3, DoubleSide, DodecahedronGeometry } from "three";
+import { DistanceConstraint, Vec3, Box, Body, Material, Quaternion } from "cannon-es";
 
 export default class Snake extends Group {
     constructor(props) {
@@ -34,7 +34,7 @@ export default class Snake extends Group {
     addCube(index, position) {
         let geometry = null;
         if (index == 0) {
-            geometry = new SphereGeometry(0.75*this.thickness);
+            geometry = new DodecahedronGeometry(this.thickness);
             geometry.scale(1, 1, 1.1);
         } else {
             geometry = new BoxGeometry(this.thickness, this.thickness, this.thickness);
