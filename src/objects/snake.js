@@ -1,82 +1,134 @@
-import { Group, BoxGeometry, MeshLambertMaterial, Mesh, Vector3, DoubleSide, DodecahedronGeometry } from "three";
+import { Group, BoxGeometry, MeshLambertMaterial, Mesh, Vector3, DoubleSide, DodecahedronGeometry, PointLight, ConeGeometry } from "three";
 import { DistanceConstraint, Vec3, Box, Body, Material, Quaternion } from "cannon-es";
 
 export default class Snake extends Group {
     constructor(props) {
         super(props);
         const { thickness, length } = props;
-        const spacing = 0.1;
-        this.pressed = 0;
+        this.spacing = 0.1;
+        this.move = false;
         this.angle = 0;
+        this.length = length;
         this.yAxis = new Vec3(0, 1, 0);
         this.direction = new Quaternion(0, 1, 0, 0);
         this.thickness = thickness;
-        this.velocity = new Vec3(0, 0, -6);
+        this.velocity = new Vec3(0, 0, -10);
         this.parts = [];
         this.contraints = [];
         for (let index = 0; index < length; index++) {
-            const position = new Vector3(0, 1, index * thickness * (1 + spacing));
+            const position = new Vector3(0, 1, index * thickness * (1 + this.spacing));
             const part = this.addCube(index, position);
             this.add(part.object);
             this.parts.push(part);
         }
 
-        for (let index = 0; index < this.parts.length-1; index++) {
+        for (let index = 0; index < this.parts.length - 1; index++) {
             const curr = this.parts[index];
-            const next = this.parts[index+1];
-            
+            const next = this.parts[index + 1];
+
             this.contraints.push(
-                new DistanceConstraint(curr.body, next.body, thickness + spacing*2)
+                new DistanceConstraint(next.body, curr.body, thickness + this.spacing * 2)
             );
         }
     }
 
     addCube(index, position) {
-        let geometry = null;
+        const group = new Group();
         if (index == 0) {
-            geometry = new DodecahedronGeometry(this.thickness);
+            const geometry = new DodecahedronGeometry(this.thickness);
             geometry.scale(1, 1, 1.1);
+            const material = new MeshLambertMaterial({ side: DoubleSide, color: 0xAAff00, visible: true });
+            const object = new Mesh(geometry, material);
+
+            const light = new PointLight(0x989285, 6);
+            light.castShadow = true;
+            light.shadow.mapSize.width = 1024;
+            light.shadow.mapSize.height = 1024;
+            light.position.add(new Vector3(0, 2, 0));
+            group.add(light);
+            group.add(object);
         } else {
-            geometry = new BoxGeometry(this.thickness, this.thickness, this.thickness);
+            const tailObject = new Group();
+            const geometry = new BoxGeometry(this.thickness, this.thickness, this.thickness);
+            const material = new MeshLambertMaterial({ side: DoubleSide, color: 0xAAff00, visible: true });
+            const box = new Mesh(geometry, material);
+            tailObject.add(box);
+            if (index == this.length - 1) {
+                const geometry = new ConeGeometry(this.thickness * 0.5, 1.25, 8);
+                geometry.rotateX(Math.PI / 2);
+                const material = new MeshLambertMaterial({ side: DoubleSide, color: 0xAAff00, visible: true });
+                const cone = new Mesh(geometry, material);
+                cone.position.set(box.position.x, box.position.y, box.position.z + this.thickness+this.spacing);
+                tailObject.add(cone);
+            }
+            group.add(tailObject);
         }
-        const material = new MeshLambertMaterial({ side: DoubleSide, color: 0xAAff00, visible: true });
-        const object = new Mesh(geometry, material);
-        object.position.set(position.x, position.y, position.z);
-        object.castShadow = true;
+
+        group.position.set(position.x, position.y, position.z);
+        group.castShadow = true;
         const bodyPos = new Vec3(position.x, position.y, position.z);
-        const shape = new Box(new Vec3(this.thickness/2, this.thickness/2, this.thickness/2));
-		const body = new Body({ mass: 1, linearDamping: 0.1, angularDamping: 1.0, position: bodyPos, material: new Material() });
+        const shape = new Box(new Vec3(this.thickness / 2, this.thickness / 2, this.thickness / 2));
+        const body = new Body({ mass: 1, linearDamping: 0.1, angularDamping: 1.0, position: bodyPos, material: new Material() });
         body.angularVelocity.setZero();
-		body.addShape(shape);
-        return { object, body };
+        body.addShape(shape);
+        return { object: group, body };
     }
 
     setState(pressed) {
-        this.pressed = pressed;
+        switch (pressed) {
+            case 'ArrowLeft':
+                this.angle = Math.PI / 2;
+                break;
+            case 'ArrowRight':
+                this.angle = -Math.PI / 2;
+                break;
+            case 'ArrowUp':
+                this.move = true;
+                break;
+            case 'ArrowDown':
+                break;
+            default:
+        }
+    }
+
+    unsetState(unpressed) {
+        switch (unpressed) {
+            case 'ArrowLeft':
+            case 'ArrowRight':
+                this.angle = 0;
+                break;
+            case 'ArrowUp':
+                this.move = false;
+                break;
+            case 'ArrowDown':
+                break;
+            default:
+        }
     }
 
     getHead() {
         return this.parts[0];
     }
 
+    getTail() {
+        return this.parts[this.parts.length - 1];
+    }
+
     update(delta) {
-        let angle = 0.0;
-        if (this.pressed == 'ArrowLeft') {
-            angle = delta * Math.PI/2;
+        this.direction.setFromAxisAngle(this.yAxis, this.angle * delta);
+        if (this.move) {
+            const head = this.getHead();
+            const tail = this.getTail();
+            const rotation = this.direction.mult(head.body.quaternion);
+            head.body.quaternion = rotation;
+            tail.body.quaternion = rotation;
+            let velocity = head.body.quaternion.vmult(this.velocity);
+            head.body.velocity.x = velocity.x;
+            head.body.velocity.z = velocity.z;
         }
-        if (this.pressed == 'ArrowRight') {
-            angle = -delta * Math.PI/2;
-        }
-        this.direction.setFromAxisAngle(this.yAxis, angle);
-        const head = this.getHead();
-        const newQ = this.direction.mult(head.body.quaternion);
-        head.body.quaternion = newQ;
-        let velocity = head.body.quaternion.vmult(this.velocity);
-        head.body.velocity.x = velocity.x;
-        head.body.velocity.z = velocity.z;
         this.parts.forEach(({ object, body }) => {
             object.position.copy(body.position, delta);
-			object.quaternion.copy(body.quaternion, delta);
-		});
+            object.quaternion.copy(body.quaternion, delta);
+        });
     }
 }

@@ -3,8 +3,9 @@ import {
 	PerspectiveCamera,
 	WebGLRenderer,
 	AmbientLight,
+	SpotLight,
+	SpotLightHelper,
 	Color,
-	DirectionalLight,
 	Clock,
 	Vector3,
 	PCFSoftShadowMap,
@@ -26,13 +27,13 @@ class Game {
 		this.clock = new Clock();
 		this.delta = 0;
 
+		this.camera = new PerspectiveCamera(75, this.canvasContainer.clientWidth / this.canvasContainer.clientHeight, 1, 1000);
+		this.offset = new Vector3();
+		this.lookAt = new Vector3();
+
 		this.initCannon();
 		this.addRenderers();
 		this.setupScene();
-
-		this.camera = new PerspectiveCamera(75, this.canvasContainer.clientWidth / this.canvasContainer.clientHeight, 1, 35);
-		this.offset = new Vector3();
-		this.lookAt = new Vector3();
 
 		document.addEventListener('keydown', (e) => this.onKeyDown(e), false);
 		document.addEventListener('keyup', (e) => this.onKeyUp(e), false);
@@ -41,7 +42,7 @@ class Game {
 
 	initCannon() {
 		const world = new CANNON.World();
-		world.gravity.set(0, -10, 0);
+		world.gravity.set(0, -9.81, 0);
 		world.broadphase = new CANNON.NaiveBroadphase();
 		world.solver.iterations = 10;
 		this.world = world;
@@ -49,9 +50,9 @@ class Game {
 	}
 
 	setupScene() {
-		this.addLights();
 		this.addPlane();
 		this.addSnake();
+		this.addLights();
 	}
 
 	addRenderers() {
@@ -63,13 +64,7 @@ class Game {
 	}
 
 	addLights() {
-		const light = new DirectionalLight(0x989285, 3);
-		light.position.set(100, 100, 0);
-		light.castShadow = true;
-		this.light = light;
-
 		this.scene.add(new AmbientLight(0xAEAEA0, 0.1));
-		this.scene.add(light);
 	}
 
 	addSnake() {
@@ -113,12 +108,12 @@ class Game {
 		this.snake.setState(e.code);
 	}
 
-	onKeyUp() {
-		this.snake.setState('');
+	onKeyUp(e) {
+		this.snake.unsetState(e.code);
 	}
 
 	idealOffset(head) {
-		const offset = new Vector3(0, 5, 7);
+		const offset = new Vector3(0, 5, 8);
 		offset.applyQuaternion(head.object.quaternion);
 		offset.add(head.object.position);
 		return offset;
