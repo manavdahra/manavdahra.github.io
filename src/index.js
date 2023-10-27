@@ -3,13 +3,13 @@ import {
 	PerspectiveCamera,
 	WebGLRenderer,
 	AmbientLight,
-	SpotLight,
-	SpotLightHelper,
 	Color,
 	Clock,
 	Vector3,
 	PCFSoftShadowMap,
 } from 'three';
+import Stats from 'three/examples/jsm/libs/stats.module';
+
 import CannonDebugger from 'cannon-es-debugger';
 import * as CANNON from 'cannon-es';
 
@@ -56,10 +56,14 @@ class Game {
 	}
 
 	addRenderers() {
+		this.stats = new Stats();
+		this.stats.showPanel(0);
+		this.stats.domElement.style.cssText = 'position: absolute; right: 20px; opacity: 0.9; z-index: 999';
 		this.renderer = new WebGLRenderer({ antialias: true });
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = PCFSoftShadowMap;
 		this.renderer.setSize(this.canvasContainer.clientWidth, this.canvasContainer.clientHeight);
+		this.canvasContainer.appendChild(this.stats.dom);
 		this.canvasContainer.appendChild(this.renderer.domElement);
 	}
 
@@ -96,12 +100,13 @@ class Game {
 
 	run() {
 		requestAnimationFrame(() => this.run());
-
 		this.delta = this.clock.getDelta();
 		this.updateCamera();
 
 		this.updatePhysics();
 		this.render();
+
+		this.stats.update();
 	}
 
 	onKeyDown(e) {
