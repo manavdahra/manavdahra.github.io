@@ -8,6 +8,8 @@ import {
 	Vector3,
 	PCFSoftShadowMap,
 } from 'three';
+import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer';
+
 import Stats from 'three/examples/jsm/libs/stats.module';
 
 import CannonDebugger from 'cannon-es-debugger';
@@ -65,6 +67,12 @@ class Game {
 		this.renderer.setSize(this.canvasContainer.clientWidth, this.canvasContainer.clientHeight);
 		this.canvasContainer.appendChild(this.stats.dom);
 		this.canvasContainer.appendChild(this.renderer.domElement);
+
+		this.labelRenderer = new CSS2DRenderer();
+		this.labelRenderer.setSize( this.canvasContainer.clientWidth, this.canvasContainer.clientHeight );
+		this.labelRenderer.domElement.classList.add("game-css");
+		this.canvasContainer.appendChild( this.labelRenderer.domElement );
+
 	}
 
 	addLights() {
@@ -79,7 +87,7 @@ class Game {
 		});
 		this.snake.contraints.forEach(con => {
 			this.world.addConstraint(con);
-		})
+		});
 		this.scene.add(this.snake);
 	}
 
@@ -94,6 +102,7 @@ class Game {
 		this.camera.updateProjectionMatrix();
 
 		this.renderer.setSize(this.canvasContainer.clientWidth, this.canvasContainer.clientHeight);
+		this.labelRenderer.setSize(this.canvasContainer.clientWidth, this.canvasContainer.clientHeight);
 
 		this.render();
 	}
@@ -133,12 +142,12 @@ class Game {
 
 	updateCamera() {
 		const head = this.snake.getHead();
-		
+
 		const idealOffset = this.idealOffset(head);
 		const idealLookAt = this.idealLookAt(head);
-		
-		this.offset = this.offset.lerp(idealOffset, this.delta*4);
-		this.lookAt = this.lookAt.lerp(idealLookAt, this.delta*4);
+
+		this.offset = this.offset.lerp(idealOffset, this.delta * 4);
+		this.lookAt = this.lookAt.lerp(idealLookAt, this.delta * 4);
 
 		this.camera.lookAt(this.lookAt);
 		this.camera.position.copy(this.offset);
@@ -156,10 +165,12 @@ class Game {
 
 	render() {
 		this.renderer.render(this.scene, this.camera);
+		this.labelRenderer.render(this.scene, this.camera);
 	}
 }
 
 const canvasContainer = document.getElementById('intro-canvas');
+canvasContainer.focus();
 const game = new Game({ canvasContainer, debug: false });
 game.run();
 

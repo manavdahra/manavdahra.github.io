@@ -98,6 +98,7 @@ h1 {
 .intro-canvas {
     width: 50%;
     min-height: 500px;
+    position: relative;
 }
 
 .icon {
@@ -107,6 +108,30 @@ h1 {
     height: 24px;
 }
 
+.arrow-left {
+    content: url('./assets/icons/arrow-down.svg');
+    transform: rotate(90deg);
+    background-color: #989285;
+    height: 18px;
+    width: 18px;
+}
+
+.arrow-right {
+    content: url('./assets/icons/arrow-down.svg');
+    transform: rotate(-90deg);
+    background-color: #989285;
+    height: 18px;
+    width: 18px;
+}
+
+.arrow-up {
+    content: url('./assets/icons/arrow-down.svg');
+    transform: rotate(180deg);
+    background-color: #989285;
+    height: 18px;
+    width: 18px;
+}
+
 .github {
     content: url('./assets/icons/github.svg');
 }
@@ -114,7 +139,6 @@ h1 {
 .linkedIn {
     content: url('./assets/icons/linkedIn.png');
 }
-
 
 footer {
     font-family: 'dev-font-regular';
@@ -138,4 +162,34 @@ footer {
     div.intro-container { flex-direction: column; }
     div.intro-description { width: 100%; }
     div.intro-canvas { width: 100%; }
+}
+
+.game-overlay {
+    background: rgba( 0, 0, 0, .6 );
+    position: absolute;
+    z-index: 999;
+    top: 0px;
+    padding: 1%;
+    color: #989285;
+}
+
+.game-css {
+    position: absolute;
+    z-index: 999;
+    top: 0px;
+}
+
+.game-stats {
+    position: absolute; 
+    right: 20px; 
+    opacity: 0.9; 
+    z-index: 999;
+}
+
+.snake-label {
+    background-color: transparent;
+    padding: 2px;
+    font-size: 10px;
+    color: #213636;
+    font-weight: bold;
 }

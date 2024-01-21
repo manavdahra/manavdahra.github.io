@@ -1,5 +1,6 @@
 import { Group, BoxGeometry, MeshLambertMaterial, Mesh, Vector3, DoubleSide, DodecahedronGeometry, PointLight, ConeGeometry } from "three";
 import { DistanceConstraint, Vec3, Box, Body, Material, Quaternion } from "cannon-es";
+import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 
 export default class Snake extends Group {
     constructor(props) {
@@ -15,8 +16,14 @@ export default class Snake extends Group {
         this.velocity = new Vec3(0, 0, -10);
         this.parts = [];
         this.contraints = [];
-        for (let index = 0; index < length; index++) {
-            const position = new Vector3(0, 1, index * thickness * (1 + this.spacing));
+        
+        this.buildBody();
+        this.addLabel();
+    }
+
+    buildBody() {
+        for (let index = 0; index < this.length; index++) {
+            const position = new Vector3(0, 1, index * this.thickness * (1 + this.spacing));
             const part = this.addCube(index, position);
             this.add(part.object);
             this.parts.push(part);
@@ -27,9 +34,17 @@ export default class Snake extends Group {
             const next = this.parts[index + 1];
 
             this.contraints.push(
-                new DistanceConstraint(next.body, curr.body, thickness + this.spacing * 2)
+                new DistanceConstraint(next.body, curr.body, this.thickness + this.spacing * 2)
             );
         }
+    }
+
+    addLabel() {
+        const labelDiv = document.createElement("div");
+        labelDiv.className = "snake-label";
+        this.label = new CSS2DObject(labelDiv);
+        this.label.center.set(0.5, 2.5);
+        this.parts[0].object.add(this.label);
     }
 
     addCube(index, position) {
@@ -58,7 +73,7 @@ export default class Snake extends Group {
                 geometry.rotateX(Math.PI / 2);
                 const material = new MeshLambertMaterial({ side: DoubleSide, color: 0xAAff00, visible: true });
                 const cone = new Mesh(geometry, material);
-                cone.position.set(box.position.x, box.position.y, box.position.z + this.thickness+this.spacing);
+                cone.position.set(box.position.x, box.position.y, box.position.z + this.thickness + this.spacing);
                 tailObject.add(cone);
             }
             group.add(tailObject);
@@ -130,5 +145,11 @@ export default class Snake extends Group {
             object.position.copy(body.position, delta);
             object.quaternion.copy(body.quaternion, delta);
         });
+
+        this.updateLabel();
+    }
+
+    updateLabel() {
+        this.label.element.textContent = `Speed: ${this.getHead().body.velocity.length().toFixed(2)} m/s`;;
     }
 }
