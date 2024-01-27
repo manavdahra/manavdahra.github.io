@@ -30,16 +30,16 @@ body {
 }
 
 .sidenav {
-    height: 100%; /* 100% Full-height */
-    width: 5%;
+    height: 5%;
+    width: 100%;
     position: fixed; /* Stay in place */
-    z-index: 1; /* Stay on top */
+    z-index: 999; /* Stay on top */
     top: 0; /* Stay at the top */
     left: 0;
     background-color: #1f2127; /* Black*/
     overflow-x: hidden; /* Disable horizontal scroll */
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     row-gap: 10%;
     padding: 1%;
     align-items: center;
@@ -50,6 +50,8 @@ body {
     text-decoration: none;
     color: inherit;
     display: flex;
+    float: left; 
+    padding: 2%;
 }
 
 .sidenav a:hover {
@@ -60,13 +62,24 @@ body {
     color: #828631;
 }
 
+.link a {
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+}
+
+.link a:hover {
+    color: #828631;
+}
+
 header {
     font-size: 3em;
     text-align: center;
 }
 
 .content {
-    margin-left: 10%;
+    margin-top: 5%;
 }
 
 .content p {
@@ -89,7 +102,7 @@ h1 {
 
 .intro-description {
     font-family: 'dev-font-medium';
-    font-size: 1em;
+    font-size: 0.8em;
     color: inherit;
     width: 50%;
     padding: 1%;
@@ -133,6 +146,7 @@ h1 {
 }
 
 .github {
+    background-color: #989285;
     content: url('./assets/icons/github.svg');
 }
 
@@ -141,23 +155,20 @@ h1 {
 }
 
 footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    padding: 1%;
     font-family: 'dev-font-regular';
     text-align: center;
-    font-size: 1em;
-    grid-column-start: 1;
-    grid-column-end: 3;
-    padding: 20px;
-    clear: both;
+    font-size: 0.6em;
+    background-color: #1f2127; /* Black*/
+    overflow-x: hidden; /* Disable horizontal scroll */
 }
 
 @media screen and (max-width: 700px) {
-    .sidenav {
-        height: 5%;
-        width: 100%;
-        position: fixed;
-        flex-direction: row;
-    }
-    .sidenav a { float: left; padding: 2%; }
     div.content { margin-top: 15%; margin-left: 0; }
     div.intro-container { flex-direction: column; }
     div.intro-description { width: 100%; }
@@ -167,7 +178,7 @@ footer {
 .game-overlay {
     background: rgba( 0, 0, 0, .6 );
     position: absolute;
-    z-index: 999;
+    z-index: 998;
     top: 0px;
     padding: 1%;
     color: #989285;
@@ -175,7 +186,7 @@ footer {
 
 .game-css {
     position: absolute;
-    z-index: 999;
+    z-index: 998;
     top: 0px;
 }
 
@@ -183,7 +194,7 @@ footer {
     position: absolute; 
     right: 20px; 
     opacity: 0.9; 
-    z-index: 999;
+    z-index: 998;
 }
 
 .snake-label {
