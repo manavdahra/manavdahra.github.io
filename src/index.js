@@ -37,9 +37,14 @@ class Game {
 		this.addRenderers();
 		this.setupScene();
 
+		window.addEventListener("keydown", function(e) {
+			if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
+				e.preventDefault();
+			}
+		}, false);
 		document.addEventListener('keydown', (e) => this.onKeyDown(e), false);
 		document.addEventListener('keyup', (e) => this.onKeyUp(e), false);
-		window.addEventListener('resize', () => this.onWindowResize());
+		window.addEventListener('resize', (e) => this.onWindowResize(), false);
 	}
 
 	initCannon() {
@@ -69,9 +74,9 @@ class Game {
 		this.canvasContainer.appendChild(this.renderer.domElement);
 
 		this.labelRenderer = new CSS2DRenderer();
-		this.labelRenderer.setSize( this.canvasContainer.clientWidth, this.canvasContainer.clientHeight );
+		this.labelRenderer.setSize(this.canvasContainer.clientWidth, this.canvasContainer.clientHeight);
 		this.labelRenderer.domElement.classList.add("game-css");
-		this.canvasContainer.appendChild( this.labelRenderer.domElement );
+		this.canvasContainer.appendChild(this.labelRenderer.domElement);
 
 	}
 

@@ -2,10 +2,12 @@
     font-family: 'dev-font-regular';
     src: url('./assets/fonts/JetBrainsMono-Regular.ttf');
 }
+
 @font-face {
     font-family: 'dev-font-heading';
     src: url('./assets/fonts/JetBrainsMono-ExtraBold.ttf');
 }
+
 @font-face {
     font-family: 'dev-font-medium';
     src: url('./assets/fonts/JetBrainsMono-Medium.ttf');
@@ -32,12 +34,17 @@ body {
 .sidenav {
     height: 5%;
     width: 100%;
-    position: fixed; /* Stay in place */
-    z-index: 999; /* Stay on top */
-    top: 0; /* Stay at the top */
+    position: fixed;
+    /* Stay in place */
+    z-index: 999;
+    /* Stay on top */
+    top: 0;
+    /* Stay at the top */
     left: 0;
-    background-color: #1f2127; /* Black*/
-    overflow-x: hidden; /* Disable horizontal scroll */
+    background-color: #1f2127;
+    /* Black*/
+    overflow-x: hidden;
+    /* Disable horizontal scroll */
     display: flex;
     flex-direction: row;
     row-gap: 10%;
@@ -50,7 +57,7 @@ body {
     text-decoration: none;
     color: inherit;
     display: flex;
-    float: left; 
+    float: left;
     padding: 2%;
 }
 
@@ -125,24 +132,24 @@ h1 {
     content: url('./assets/icons/arrow-down.svg');
     transform: rotate(90deg);
     background-color: #989285;
-    height: 18px;
-    width: 18px;
+    height: 24px;
+    width: 24px;
 }
 
 .arrow-right {
     content: url('./assets/icons/arrow-down.svg');
     transform: rotate(-90deg);
     background-color: #989285;
-    height: 18px;
-    width: 18px;
+    height: 24px;
+    width: 24px;
 }
 
 .arrow-up {
     content: url('./assets/icons/arrow-down.svg');
     transform: rotate(180deg);
     background-color: #989285;
-    height: 18px;
-    width: 18px;
+    height: 24px;
+    width: 24px;
 }
 
 .github {
@@ -164,24 +171,42 @@ footer {
     font-family: 'dev-font-regular';
     text-align: center;
     font-size: 0.6em;
-    background-color: #1f2127; /* Black*/
-    overflow-x: hidden; /* Disable horizontal scroll */
+    background-color: #1f2127;
+    overflow-x: hidden;
 }
 
 @media screen and (max-width: 700px) {
-    div.content { margin-top: 15%; margin-left: 0; }
-    div.intro-container { flex-direction: column; }
-    div.intro-description { width: 100%; }
-    div.intro-canvas { width: 100%; }
+    div.content {
+        margin-top: 15%;
+        margin-left: 0;
+    }
+
+    div.intro-container {
+        flex-direction: column;
+    }
+
+    div.intro-description {
+        width: 100%;
+    }
+
+    div.intro-canvas {
+        width: 100%;
+    }
 }
 
 .game-overlay {
-    background: rgba( 0, 0, 0, .6 );
+    background: rgba(0, 0, 0, .6);
     position: absolute;
     z-index: 998;
     top: 0px;
     padding: 1%;
     color: #989285;
+}
+
+.controls-overlay {
+    position: absolute;
+    z-index: 998;
+    bottom: 0px;
 }
 
 .game-css {
@@ -191,9 +216,9 @@ footer {
 }
 
 .game-stats {
-    position: absolute; 
-    right: 20px; 
-    opacity: 0.9; 
+    position: absolute;
+    right: 20px;
+    opacity: 0.9;
     z-index: 998;
 }
 
