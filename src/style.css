@@ -86,7 +86,7 @@ header {
 }
 
 .content {
-    margin-top: 5%;
+    margin-top: 3%;
 }
 
 .content p {
@@ -166,8 +166,9 @@ footer {
     bottom: 0;
     left: 0;
     right: 0;
+    margin: 0px;
+    padding: 0px;
     z-index: 999;
-    padding: 1%;
     font-family: 'dev-font-regular';
     text-align: center;
     font-size: 0.6em;
