@@ -17,7 +17,6 @@ import * as CANNON from 'cannon-es';
 
 import Snake from './objects/snake';
 import Ground from './objects/plane';
-import './style.css';
 
 class Game {
 	constructor(props) {
