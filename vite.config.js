@@ -10,10 +10,11 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'index.html')
+        main: resolve(__dirname, 'index.html'),
+        style: resolve(__dirname, 'public/style.css')
       },
       output: {
-        entryFileNames: 'main.js',
+        entryFileNames: 'index.js',
         chunkFileNames: '[name].js',
         assetFileNames: '[name].[ext]',
         manualChunks: {
@@ -25,6 +26,12 @@ export default defineConfig({
     }
   },
   server: {
-    open: true
+    open: true,
+    fs: {
+      allow: ['..']
+    }
+  },
+  preview: {
+    outDir: 'docs'
   }
 });
