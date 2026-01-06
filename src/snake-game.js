@@ -32,18 +32,123 @@ class Game {
 		this.offset = new Vector3();
 		this.lookAt = new Vector3();
 
+		// Detect device type
+		this.isMobile = this.detectMobileDevice();
+		this.touchStartX = 0;
+		this.touchStartY = 0;
+		this.touchEndX = 0;
+		this.touchEndY = 0;
+
 		this.initCannon();
 		this.addRenderers();
 		this.setupScene();
+		this.updateOverlayMessage();
 
-		window.addEventListener("keydown", function(e) {
-			if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
-				e.preventDefault();
-			}
-		}, false);
-		document.addEventListener('keydown', (e) => this.onKeyDown(e), false);
-		document.addEventListener('keyup', (e) => this.onKeyUp(e), false);
+		if (this.isMobile) {
+			// Mobile touch controls
+			this.canvasContainer.addEventListener('touchstart', (e) => this.onTouchStart(e), false);
+			this.canvasContainer.addEventListener('touchmove', (e) => this.onTouchMove(e), false);
+			this.canvasContainer.addEventListener('touchend', (e) => this.onTouchEnd(e), false);
+		} else {
+			// Desktop keyboard controls
+			window.addEventListener("keydown", function(e) {
+				if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
+					e.preventDefault();
+				}
+			}, false);
+			document.addEventListener('keydown', (e) => this.onKeyDown(e), false);
+			document.addEventListener('keyup', (e) => this.onKeyUp(e), false);
+		}
 		window.addEventListener('resize', (e) => this.onWindowResize(), false);
+	}
+
+	detectMobileDevice() {
+		// Check for touch support and common mobile user agents
+		const hasTouchScreen = ('ontouchstart' in window) || 
+			(navigator.maxTouchPoints > 0) || 
+			(navigator.msMaxTouchPoints > 0);
+		
+		const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+		const isMobileUserAgent = mobileRegex.test(navigator.userAgent);
+		
+		// Also check screen width as an additional indicator
+		const isSmallScreen = window.innerWidth <= 768;
+		
+		return (hasTouchScreen && isMobileUserAgent) || (hasTouchScreen && isSmallScreen);
+	}
+
+	updateOverlayMessage() {
+		const overlay = document.querySelector('.game-overlay');
+		if (!overlay) return;
+
+		if (this.isMobile) {
+			// Update message for mobile devices
+			overlay.innerHTML = `
+				<h3>3D Snake Demo</h3>
+				Tap and hold to move, swipe left/right to turn
+			`;
+		} else {
+			// Keep original message for desktop
+			overlay.innerHTML = `
+				<h3>3D Snake Demo</h3>
+				Use arrow keys 
+				<img class="icon arrow-left">
+				<img class="icon arrow-up">
+				<img class="icon arrow-right">
+				to control the snake
+			`;
+		}
+	}
+
+	onTouchStart(e) {
+		e.preventDefault();
+		const touch = e.touches[0];
+		this.touchStartX = touch.clientX;
+		this.touchStartY = touch.clientY;
+		
+		// Start moving on touch
+		this.snake.setState('ArrowUp');
+	}
+
+	onTouchMove(e) {
+		e.preventDefault();
+		if (e.touches.length === 0) return;
+		
+		const touch = e.touches[0];
+		this.touchEndX = touch.clientX;
+		this.touchEndY = touch.clientY;
+		
+		const deltaX = this.touchEndX - this.touchStartX;
+		const deltaY = this.touchEndY - this.touchStartY;
+		
+		// Determine direction based on swipe
+		if (Math.abs(deltaX) > Math.abs(deltaY)) {
+			// Horizontal swipe
+			if (deltaX > 40) {
+				// Swipe right
+				this.snake.setState('ArrowRight');
+			} else if (deltaX < -40) {
+				// Swipe left
+				this.snake.setState('ArrowLeft');
+			} else {
+				// Reset if no significant swipe
+				this.snake.unsetState('ArrowLeft');
+				this.snake.unsetState('ArrowRight');
+			}
+		}
+	}
+
+	onTouchEnd(e) {
+		e.preventDefault();
+		
+		// Reset rotation when touch ends
+		this.snake.unsetState('ArrowLeft');
+		this.snake.unsetState('ArrowRight');
+		
+		// Keep moving forward
+		// Snake will keep moving until user stops touching
+		// If you want to stop on touch end, uncomment the line below:
+		this.snake.unsetState('ArrowUp');
 	}
 
 	initCannon() {
@@ -173,13 +278,10 @@ class Game {
 	}
 }
 
-const canvasContainer = document.getElementById('intro-canvas');
-canvasContainer.focus();
-const game = new Game({ canvasContainer, debug: false });
-game.run();
+export default Game;
 
-window.onClickNavBarItem = (element) => {
-	const elements = document.getElementsByClassName('active');
-	for (let element of elements) { element.classList.remove('active'); }
-	element.classList.add('active');
-}
+// Usage example:
+// const canvasContainer = document.getElementById('intro-canvas');
+// canvasContainer.focus();
+// const game = new Game({ canvasContainer, debug: false });
+// game.run();

@@ -1,0 +1,24 @@
+<div class="sidenav">
+    <a href="/" data-path="/">About</a>
+    <a href="/blogs/index.html" data-path="/blogs">Blogs</a>
+    <a href="/resumes/resume_05_2024.pdf" data-path="/resumes">Resume</a>
+</div>
+
+<script>
+    // Set active class based on current URL path
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll('.sidenav a');
+        
+        navLinks.forEach(link => {
+            const linkPath = link.getAttribute('data-path');
+            
+            // Check if current path starts with the link path
+            if (linkPath === '/' && currentPath === '/') {
+                link.classList.add('active');
+            } else if (linkPath !== '/' && currentPath.startsWith(linkPath)) {
+                link.classList.add('active');
+            }
+        });
+    });
+</script>

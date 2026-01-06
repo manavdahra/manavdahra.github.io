@@ -109,16 +109,16 @@ h1 {
 
 .intro-description {
     font-family: 'dev-font-medium';
-    font-size: 0.8em;
+    font-size: 1em;
     color: inherit;
-    width: 50%;
+    width: 100%;
     padding: 1%;
 }
 
 .intro-canvas {
-    width: 50%;
+    width: 100%;
     min-height: 500px;
-    position: relative;
+    margin-bottom: 50px;
 }
 
 .icon {
@@ -167,11 +167,11 @@ footer {
     left: 0;
     right: 0;
     margin: 0px;
-    padding: 0px;
+    padding-bottom: 10px;
     z-index: 999;
     font-family: 'dev-font-regular';
     text-align: center;
-    font-size: 0.6em;
+    font-size: 0.85em;
     background-color: #1f2127;
     overflow-x: hidden;
 }
@@ -197,8 +197,6 @@ footer {
 
 .game-overlay {
     background: rgba(0, 0, 0, .6);
-    position: absolute;
-    z-index: 998;
     top: 0px;
     padding: 1%;
     color: #989285;

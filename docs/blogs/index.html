@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Manav Dahra</title>
+        
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+      <link rel="stylesheet" href="/style.css">
+    </head>
+    <body>
+        <div class="sidenav">
+            <a href="/" data-path="/">About</a>
+            <a href="/blogs/index.html" data-path="/blogs">Blogs</a>
+            <a href="/resumes/resume_05_2024.pdf" data-path="/resumes">Resume</a>
+        </div>
+        
+        <script>
+            // Set active class based on current URL path
+            document.addEventListener('DOMContentLoaded', function() {
+                const currentPath = window.location.pathname;
+                const navLinks = document.querySelectorAll('.sidenav a');
+                
+                navLinks.forEach(link => {
+                    const linkPath = link.getAttribute('data-path');
+                    
+                    // Check if current path starts with the link path
+                    if (linkPath === '/' && currentPath === '/') {
+                        link.classList.add('active');
+                    } else if (linkPath !== '/' && currentPath.startsWith(linkPath)) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        </script>
+        <div class="content">
+            <div class="intro-container">
+                <div class="intro-description">
+                    <h2 id="blogs" class="blogs">Blogs</h2>
+                    <br>
+                    <ul>
+                        <li><a class="link" href="./snake-game.html">Snake Game</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Connect with me on 
+                <a href="https://github.com/manavdahra" target="_blank">
+                    <img class="icon github">
+                </a>
+                <a href="https://www.linkedin.com/in/manav-dahra/" target="_blank">
+                    <img class="icon linkedIn">
+                </a>
+            </p>
+            <span>&copy; 2023 Manav Dahra's Portfolio. All rights reserved.</span>
+        </footer>
+    </body>
+</html>

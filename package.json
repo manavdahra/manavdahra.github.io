@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "description": "Portfolio",
   "private": "true",
+  "type": "module",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "clean": "rm -rf docs",
+    "build": "npm run clean && vite build",
+    "dev": "npm run build && vite",
+    "preview": "npm run build && vite preview"
   },
   "repository": {
     "type": "git",
@@ -24,7 +26,8 @@
   },
   "homepage": "https://github.com/manavdahra/manavdahra.github.io#readme",
   "devDependencies": {
-    "vite": "^4.3.9"
+    "vite": "^4.3.9",
+    "vite-plugin-handlebars": "^2.0.0"
   },
   "dependencies": {
     "cannon-es": "^0.20.0",

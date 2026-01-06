@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script type="module" src="/src/index.js"></script>
+    <script type="module" src="src/main.js"></script>
     <title>Manav Dahra</title>
     <link rel="stylesheet" href="/style.css">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -10,11 +10,7 @@
 </head>
 
     <body style="display: none">
-        <div class="sidenav">
-            <a class="active" href="#about-me">About</a>
-            <a href="/blogs/blogs-index.html">Blogs</a>
-            <a href="/resumes/resume_05_2024.pdf">Resume</a>
-        </div>
+        {{> navbar}}
 
         <div class="content">
             <div class="intro-container">
@@ -47,29 +43,17 @@
                         <br>
                         I hope you find my portfolio enjoyable. &#128513;
                     </p>
-                </div>
-                <div id="intro-canvas" class="intro-canvas">
-                    <div class="game-overlay">
-                        <h3>3D Snake Demo</h3>
-                        Use arrow keys 
-                        <img class="icon arrow-left">
-                        <img class="icon arrow-up">
-                        <img class="icon arrow-right">
-                        to control the snake</div>
+
+                    <p>Connect with me on 
+                        <a href="https://github.com/manavdahra" target="_blank">
+                            <img class="icon github">
+                        </a>
+                        <a href="https://www.linkedin.com/in/manav-dahra/" target="_blank">
+                            <img class="icon linkedIn">
+                        </a>
+                    </p>
                 </div>
             </div>
         </div>
-
-        <footer>
-            <p>Connect with me on 
-                <a href="https://github.com/manavdahra" target="_blank">
-                    <img class="icon github">
-                </a>
-                <a href="https://www.linkedin.com/in/manav-dahra/" target="_blank">
-                    <img class="icon linkedIn">
-                </a>
-            </p>
-            <span>&copy; 2023 Manav Dahra's Portfolio. All rights reserved.</span>
-        </footer>
     </body>
 </html>
