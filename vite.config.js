@@ -1,7 +1,18 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import handlebars from 'vite-plugin-handlebars';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export default defineConfig({
+  plugins: [
+    handlebars({
+      partialDirectory: resolve(__dirname, 'partials'),
+    }),
+  ],
   root: '.',
   publicDir: 'public',
   build: {
@@ -11,10 +22,12 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
+        blogs: resolve(__dirname, 'blogs/index.html'),
+        snakeGameBlog: resolve(__dirname, 'blogs/snake-game.html'),
         style: resolve(__dirname, 'public/style.css')
       },
       output: {
-        entryFileNames: 'index.js',
+        entryFileNames: 'main.js',
         chunkFileNames: '[name].js',
         assetFileNames: '[name].[ext]',
         manualChunks: {

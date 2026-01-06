@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Manav Dahra</title>
+        
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+      <script type="module" crossorigin src="/three-core.js"></script>
+      <script type="module" crossorigin src="/three-extras.js"></script>
+      <script type="module" crossorigin src="/physics.js"></script>
+      <script type="module" crossorigin src="/main5.js"></script>
+      <link rel="stylesheet" href="/style.css">
+    </head>
+    <body>
+        <div class="sidenav">
+            <a href="/" data-path="/">About</a>
+            <a href="/blogs/index.html" data-path="/blogs">Blogs</a>
+            <a href="/resumes/resume_05_2024.pdf" data-path="/resumes">Resume</a>
+        </div>
+        
+        <script>
+            // Set active class based on current URL path
+            document.addEventListener('DOMContentLoaded', function() {
+                const currentPath = window.location.pathname;
+                const navLinks = document.querySelectorAll('.sidenav a');
+                
+                navLinks.forEach(link => {
+                    const linkPath = link.getAttribute('data-path');
+                    
+                    // Check if current path starts with the link path
+                    if (linkPath === '/' && currentPath === '/') {
+                        link.classList.add('active');
+                    } else if (linkPath !== '/' && currentPath.startsWith(linkPath)) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        </script>
+        
+
+        <div class="content">
+            <div class="game-overlay">
+                <!-- Overlay message will be updated dynamically based on device type -->
+            </div>
+            <div id="intro-canvas" class="intro-canvas"></div>
+        </div>
+    </body>
+</html>

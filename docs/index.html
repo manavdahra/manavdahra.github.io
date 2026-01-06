@@ -7,18 +7,37 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <meta name="google-site-verification" content="U1_SbO62EedEZtIxVlDiNWyouJDeK-AlLCv63g7SE2s" />
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-  <script type="module" crossorigin src="/index.js"></script>
-  <link rel="modulepreload" crossorigin href="/three-core.js">
-  <link rel="modulepreload" crossorigin href="/three-extras.js">
-  <link rel="modulepreload" crossorigin href="/physics.js">
+  <script type="module" crossorigin src="/three-core.js"></script>
+  <script type="module" crossorigin src="/three-extras.js"></script>
+  <script type="module" crossorigin src="/physics.js"></script>
+  <script type="module" crossorigin src="/main5.js"></script>
 </head>
 
     <body style="display: none">
         <div class="sidenav">
-            <a class="active" href="#about-me">About</a>
-            <a href="/blogs/blogs-index.html">Blogs</a>
-            <a href="/resumes/resume_05_2024.pdf">Resume</a>
+            <a href="/" data-path="/">About</a>
+            <a href="/blogs/index.html" data-path="/blogs">Blogs</a>
+            <a href="/resumes/resume_05_2024.pdf" data-path="/resumes">Resume</a>
         </div>
+        
+        <script>
+            // Set active class based on current URL path
+            document.addEventListener('DOMContentLoaded', function() {
+                const currentPath = window.location.pathname;
+                const navLinks = document.querySelectorAll('.sidenav a');
+                
+                navLinks.forEach(link => {
+                    const linkPath = link.getAttribute('data-path');
+                    
+                    // Check if current path starts with the link path
+                    if (linkPath === '/' && currentPath === '/') {
+                        link.classList.add('active');
+                    } else if (linkPath !== '/' && currentPath.startsWith(linkPath)) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        </script>
 
         <div class="content">
             <div class="intro-container">
@@ -51,29 +70,17 @@
                         <br>
                         I hope you find my portfolio enjoyable. &#128513;
                     </p>
-                </div>
-                <div id="intro-canvas" class="intro-canvas">
-                    <div class="game-overlay">
-                        <h3>3D Snake Demo</h3>
-                        Use arrow keys 
-                        <img class="icon arrow-left">
-                        <img class="icon arrow-up">
-                        <img class="icon arrow-right">
-                        to control the snake</div>
+
+                    <p>Connect with me on 
+                        <a href="https://github.com/manavdahra" target="_blank">
+                            <img class="icon github">
+                        </a>
+                        <a href="https://www.linkedin.com/in/manav-dahra/" target="_blank">
+                            <img class="icon linkedIn">
+                        </a>
+                    </p>
                 </div>
             </div>
         </div>
-
-        <footer>
-            <p>Connect with me on 
-                <a href="https://github.com/manavdahra" target="_blank">
-                    <img class="icon github">
-                </a>
-                <a href="https://www.linkedin.com/in/manav-dahra/" target="_blank">
-                    <img class="icon linkedIn">
-                </a>
-            </p>
-            <span>&copy; 2023 Manav Dahra's Portfolio. All rights reserved.</span>
-        </footer>
     </body>
 </html>
