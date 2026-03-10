@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Snake Game: WebGL Physics Demo - Manav Dahra</title>
+    <link rel="stylesheet" href="../../static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="../../index.html">Manav Dahra</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="../../index.html" class="">Home</a></li>
+                <li><a href="../../blog/index.html" class="active">Blog</a></li>
+                <li><a href="../../about/index.html" class="">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js",
+    "cannon-es-debugger": "https://cdn.jsdelivr.net/npm/cannon-es-debugger@1.0.0/dist/cannon-es-debugger.js"
+  }
+}
+</script>
+<style>
+    .game-container {
+        margin: 2rem auto;
+    }
+    
+    .game-content {
+        position: relative;
+        width: 100%;
+        height: 600px;
+        background: #1f2127;
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 2rem 0;
+        border: 1px solid var(--border-color);
+    }
+    
+    .game-overlay {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(31, 33, 39, 0.9);
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        text-align: center;
+        color: var(--text-primary);
+        z-index: 10;
+        border: 1px solid var(--border-color);
+    }
+    
+    .game-overlay h3 {
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+    }
+    
+    .intro-canvas {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .icon {
+        display: inline-block;
+        padding: 2px 6px;
+        margin: 0 2px;
+        background: rgba(189, 183, 107, 0.2);
+        border: 1px solid var(--primary-color);
+        border-radius: 3px;
+        font-size: 1.1em;
+        font-weight: bold;
+        vertical-align: middle;
+        font-style: normal;
+    }
+    
+    .game-description {
+        background: var(--bg-secondary);
+        padding: 2rem;
+        border-radius: 8px;
+        margin: 2rem 0;
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .game-description h3 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+    
+    .game-description ul {
+        margin-left: 1.5rem;
+    }
+    
+    .game-description li {
+        margin: 0.5rem 0;
+    }
+</style>
+
+<article class="blog-post">
+    <header class="post-header">
+        <div class="container-narrow">
+            <div class="post-meta-top">
+                <span class="post-category">Interactive Demo</span>
+                <span class="post-date">March 10, 2026</span>
+            </div>
+            <h1 class="post-title-large">3D Snake Game: WebGL Physics Demo</h1>
+            <p class="post-excerpt-large">A playable 3D snake game built with Three.js and Cannon.js physics engine. Use arrow keys or touch controls to play!</p>
+            <div class="post-meta-bottom">
+                <span class="post-read-time">12 min read</span>
+                <div class="post-tags-large">
+                    
+                    <span class="tag">webgl</span>
+                    
+                    <span class="tag">three.js</span>
+                    
+                    <span class="tag">cannon.js</span>
+                    
+                    <span class="tag">game-dev</span>
+                    
+                    <span class="tag">javascript</span>
+                    
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="post-content">
+        <div class="container-narrow">
+            <div class="game-container">
+                <div class="game-content">
+                    <div class="game-overlay">
+                        <!-- Overlay message will be updated dynamically based on device type -->
+                    </div>
+                    <div id="intro-canvas" class="intro-canvas"></div>
+                </div>
+            </div>
+            
+            <div class="game-description">
+                <h3>About This Demo</h3>
+                <p>This is a 3D snake game built using modern web technologies:</p>
+                <ul>
+                    <li><strong>Three.js</strong> - WebGL renderer for 3D graphics</li>
+                    <li><strong>Cannon.js</strong> - Physics engine for realistic movement</li>
+                    <li><strong>CSS2DRenderer</strong> - For HUD overlays</li>
+                </ul>
+                
+                <h3 style="margin-top: 1.5rem;">How to Play</h3>
+                <ul>
+                    <li><strong>Desktop:</strong> Use arrow keys (←, ↑, →) to control the snake</li>
+                    <li><strong>Mobile:</strong> Tap and hold to move, swipe left/right to turn</li>
+                </ul>
+                
+                <p style="margin-top: 1rem;">
+                    The game features a camera that follows the snake, realistic physics simulation, 
+                    and responsive controls that adapt to your device type.
+                </p>
+            </div>
+            
+            <!-- Blog post content -->
+            
+            <div class="blog-content">
+                <h1>Building a 3D Snake Game: A Journey Through WebGL and Physics</h1>
+<p>Creating this 3D snake game was an incredible learning experience that took me deep into the worlds of computer graphics, physics simulation, and interactive web development. Here are the key lessons I learned along the way.</p>
+<h2>The Tech Stack</h2>
+<p>I built this game using:
+- <strong>Three.js</strong> - A powerful WebGL library that makes 3D graphics accessible
+- <strong>Cannon.js</strong> - A physics engine that brings realistic movement and collisions
+- <strong>CSS2DRenderer</strong> - For overlaying UI elements like the score
+- <strong>Vanilla JavaScript</strong> - No framework overhead, just pure ES6 modules</p>
+<h2>Lesson 1: Physics Isn't Just About Realism</h2>
+<p>When I first started, I thought physics engines were only for realistic simulations. <strong>I was wrong.</strong></p>
+<p>Physics engines like Cannon.js provide something more valuable: <strong>consistent, predictable behavior</strong> that handles edge cases you'd never think to code yourself. Collision detection, velocity constraints, angular momentum - these are all solved problems.</p>
+<p>The key insight: Don't fight the physics engine. Work with it.</p>
+<h3>The Snake's Body Problem</h3>
+<p>The hardest part was making the snake's body follow the head smoothly. My first approach was purely kinematic - calculating positions based on the path. It looked robotic and lifeless.</p>
+<p>The breakthrough came when I embraced the physics engine:</p>
+<pre class="codehilite"><code class="language-javascript">// Each body segment is a physics body with constraints
+const constraint = new PointToPointConstraint(
+    prevSegment.body,
+    new Vec3(0, 0, segmentLength / 2),
+    segment.body,
+    new Vec3(0, 0, -segmentLength / 2)
+);
+</code></pre>
+
+<p>By using point-to-point constraints, the snake's body naturally follows the head with realistic momentum and wobble. The physics engine handles all the math.</p>
+<h2>Lesson 2: Camera Control Makes or Breaks the Experience</h2>
+<p>A third-person camera that follows a moving object is deceptively complex. It's not just about positioning - it's about <strong>anticipation and smoothness</strong>.</p>
+<pre class="codehilite"><code class="language-javascript">// Smooth camera follow with lerp (linear interpolation)
+camera.position.lerp(targetPosition, 0.1);
+camera.lookAt(snake.headPosition);
+</code></pre>
+
+<p>The magic number <code>0.1</code> took hours of tweaking. Too high, and the camera feels jittery. Too low, and it lags behind uncomfortably.</p>
+<p><strong>Key learning:</strong> User experience in 3D games is 80% about camera and controls, 20% about everything else.</p>
+<h2>Lesson 3: Mobile Controls Are a Different Beast</h2>
+<p>Desktop keyboard controls are straightforward. Mobile touch controls? That's where things get interesting.</p>
+<p>I had to solve:
+- <strong>Continuous movement</strong> - The snake should move while finger is down, not just on tap
+- <strong>Direction changes</strong> - Swipe gestures need to feel natural
+- <strong>Visual feedback</strong> - Users need to know where they're touching</p>
+<p>The solution combined touch events with state management:</p>
+<pre class="codehilite"><code class="language-javascript">canvas.addEventListener('touchstart', (e) =&gt; {
+    this.touchDown = true;
+    this.touchStartX = e.touches[0].clientX;
+});
+
+canvas.addEventListener('touchmove', (e) =&gt; {
+    if (!this.touchDown) return;
+    const deltaX = e.touches[0].clientX - this.touchStartX;
+    if (Math.abs(deltaX) &gt; 30) {
+        this.turnSnake(deltaX &gt; 0 ? 'right' : 'left');
+        this.touchStartX = e.touches[0].clientX;
+    }
+});
+</code></pre>
+
+<p><strong>Lesson learned:</strong> Always test on real devices. Chrome DevTools mobile emulation doesn't capture the feel of actual touch interactions.</p>
+<h2>Lesson 4: Textures and Visual Polish Matter</h2>
+<p>My first version had a solid green snake. Functional, but boring.</p>
+<p>Adding a procedural texture changed everything:</p>
+<pre class="codehilite"><code class="language-javascript">createSnakePattern() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+
+    // Base color
+    ctx.fillStyle = '#AAff00';
+    ctx.fillRect(0, 0, 64, 64);
+
+    // Add black stripes/scales pattern
+    ctx.fillStyle = '#000000';
+    for (let i = 0; i &lt; 64; i += 16) {
+        for (let j = 0; j &lt; 64; j += 16) {
+            if ((i + j) % 32 === 0) {
+                ctx.fillRect(i, j, 12, 12);
+            }
+        }
+    }
+
+    const texture = new CanvasTexture(canvas);
+    texture.wrapS = RepeatWrapping;
+    texture.wrapT = RepeatWrapping;
+    return texture;
+}
+</code></pre>
+
+<p>Creating textures programmatically with canvas gives you:
+- No external assets to load
+- Parametric control (easy to change colors/patterns)
+- Tiny file size</p>
+<p><strong>The principle:</strong> Small visual details have disproportionate impact on perceived quality.</p>
+<h2>Lesson 5: The Animation Loop Is Your Heartbeat</h2>
+<p>The game loop ties everything together. Every frame, you need to:</p>
+<ol>
+<li>Update physics simulation</li>
+<li>Update game state</li>
+<li>Check for collisions</li>
+<li>Update camera</li>
+<li>Render the scene</li>
+</ol>
+<p>Order matters enormously. Physics before state. State before rendering.</p>
+<pre class="codehilite"><code class="language-javascript">animate() {
+    requestAnimationFrame(() =&gt; this.animate());
+
+    const deltaTime = Math.min(this.clock.getDelta(), 0.1);
+
+    // 1. Physics
+    this.world.step(1/60, deltaTime, 3);
+
+    // 2. Game logic
+    if (this.isPlaying) {
+        this.snake.update(deltaTime);
+        this.checkCollisions();
+    }
+
+    // 3. Camera
+    this.updateCamera();
+
+    // 4. Render
+    this.renderer.render(this.scene, this.camera);
+    this.labelRenderer.render(this.scene, this.camera);
+}
+</code></pre>
+
+<p>The <code>Math.min(this.clock.getDelta(), 0.1)</code> cap prevents physics explosions when the tab loses focus and regains it - a bug that took me hours to track down.</p>
+<h2>Lesson 6: Debugging 3D Is Different</h2>
+<p>When your game has a bug, you can't just <code>console.log()</code> your way through it. You need visual debugging tools.</p>
+<p>Cannon.js has a debugger that renders physics bodies as wireframes. This was invaluable for understanding why collisions weren't working as expected.</p>
+<pre class="codehilite"><code class="language-javascript">import cannonDebugger from 'cannon-es-debugger';
+const debugger = cannonDebugger(scene, world.bodies);
+</code></pre>
+
+<p><strong>Pro tip:</strong> Build debug modes into your game from day one. Toggle-able with a key press. Future you will thank present you.</p>
+<h2>Lessons on Performance</h2>
+<p>Running 3D graphics and physics at 60fps on a web page isn't trivial. Here's what I learned:</p>
+<h3>1. Minimize Physics Bodies</h3>
+<p>Each body in the physics world costs computation. My apple collection system initially created hundreds of physics bodies. I refactored to reuse a pool of 10 apple objects.</p>
+<pre class="codehilite"><code class="language-javascript">// Bad: Creating new physics body each time
+spawnApple() {
+    const apple = new Apple(this.scene, this.world);
+    this.apples.push(apple);
+}
+
+// Good: Reuse from pool
+spawnApple() {
+    const apple = this.applePool.find(a =&gt; !a.active);
+    apple.respawn(position);
+}
+</code></pre>
+
+<h3>2. Reduce Draw Calls</h3>
+<p>Every unique material causes a separate draw call. I use one shared texture for all snake segments, reducing draw calls from 20+ to 1.</p>
+<h3>3. Throttle Non-Critical Updates</h3>
+<p>HUD elements don't need 60fps updates. Score display updates once per collection, not every frame.</p>
+<h2>The Biggest Lesson: Iterate and Ship</h2>
+<p>I spent weeks trying to make the "perfect" snake game before showing anyone. Then I shipped a basic version and got feedback:</p>
+<ul>
+<li>"The camera is too close" - Easy fix I hadn't considered</li>
+<li>"Mobile controls are confusing" - Led to the tutorial overlay</li>
+<li>"Can you add a pause button?" - Obvious in retrospect</li>
+</ul>
+<p><strong>Shipping early taught me more than weeks of solo development.</strong></p>
+<h2>What's Next?</h2>
+<p>This project opened my eyes to the possibilities of browser-based 3D experiences. Some ideas I'm exploring:</p>
+<ul>
+<li>Multiplayer using WebSockets</li>
+<li>Procedurally generated levels</li>
+<li>Sound design and audio feedback</li>
+<li>Particle effects for visual juice</li>
+</ul>
+<h2>Key Takeaways</h2>
+<ol>
+<li><strong>Use physics engines</strong> - They solve harder problems than you realize</li>
+<li><strong>Polish the camera</strong> - It's the player's window into your world</li>
+<li><strong>Test on real devices</strong> - Especially for touch controls</li>
+<li><strong>Visual feedback</strong> - Small details create big experiences</li>
+<li><strong>Debug visually</strong> - 3D bugs need 3D tools</li>
+<li><strong>Optimize smartly</strong> - Profile first, optimize second</li>
+<li><strong>Ship early</strong> - Real feedback beats perfect code</li>
+</ol>
+<p>Building this game taught me that modern browsers are incredibly powerful platforms for interactive experiences. With WebGL, physics engines, and ES6 modules, you can create surprisingly sophisticated applications that run on any device.</p>
+<p>The web is the most accessible platform for creative coding. No installation, no app store approval, just a URL. That's powerful.</p>
+<hr />
+<p><strong>Want to see the code?</strong> Check out the <a href="https://github.com/manavdahra/dev-blog">source on GitHub</a> or play around with the demo above. Feel free to fork it and build your own version!</p>
+<h2>Additional Resources</h2>
+<p>If you're interested in learning more about WebGL game development, here are some resources I found invaluable:</p>
+<ul>
+<li><a href="https://threejs.org/docs/">Three.js Documentation</a> - Comprehensive and well-organized</li>
+<li><a href="https://github.com/pmndrs/cannon-es">Cannon.js GitHub</a> - The physics engine powering our snake</li>
+<li><a href="https://webglfundamentals.org/">WebGL Fundamentals</a> - For understanding what Three.js does under the hood</li>
+<li><a href="https://gameprogrammingpatterns.com/">Game Programming Patterns</a> - Timeless design patterns for games</li>
+</ul>
+<p>Happy coding! 🐍</p>
+            </div>
+            
+        </div>
+    </div>
+    
+    <footer class="post-footer">
+        <div class="container-narrow">
+            <div class="post-footer-content">
+                <p>Enjoyed the demo? Check out the <a href="https://github.com/manavdahra" target="_blank">source code on GitHub</a> or explore more content on my <a href="../../blog/index.html">blog</a>.</p>
+            </div>
+            <div class="post-navigation">
+                <a href="../../blog/index.html" class="btn btn-outline">← Back to Blog</a>
+            </div>
+        </div>
+    </footer>
+</article>
+
+<script type="module" src="../../game/main.js"></script>
+
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Manav Dahra</h3>
+                    <p>Backend Engineer & AI Interpretability Enthusiast</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <ul class="social-links">
+                        <li><a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a></li>
+                        <li><a href="https://manavdahra.github.io/" target="_blank">Portfolio</a></li>
+                        <li><a href="mailto:manav.dahra@gmail.com">Email</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Topics</h3>
+                    <ul class="topic-links">
+                        <li>Software Engineering</li>
+                        <li>AI Interpretability</li>
+                        <li>Distributed Systems</li>
+                        <li>Machine Learning</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Manav Dahra. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

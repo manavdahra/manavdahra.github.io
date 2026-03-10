@@ -19,6 +19,9 @@ def fix_paths_in_html(html_content, depth=0):
     html_content = re.sub(r'href="/static/', f'href="{prefix}static/', html_content)
     html_content = re.sub(r'src="/static/', f'src="{prefix}static/', html_content)
     
+    # Fix game file paths
+    html_content = re.sub(r'src="/game/', f'src="{prefix}game/', html_content)
+    
     # Fix navigation links based on depth
     if depth == 0:
         # Root level: index.html
@@ -97,6 +100,13 @@ def generate_static_site():
         if static_src.exists():
             shutil.copytree(static_src, static_dst)
         
+        # Copy game files
+        print("  🎮 Copying game files...")
+        game_src = Path('src/game')
+        game_dst = docs_dir / 'game'
+        if game_src.exists():
+            shutil.copytree(game_src, game_dst)
+        
         # Create .nojekyll file
         print("  📝 Creating .nojekyll file")
         (docs_dir / '.nojekyll').touch()
@@ -107,8 +117,13 @@ def generate_static_site():
     print(f"📊 Generated {3 + len(BLOG_POSTS)} HTML pages")
     print(f"📁 Output: {docs_dir.absolute()}")
     print()
-    print("🧪 Test locally:")
-    print(f"   open {docs_dir / 'index.html'}")
+    print("🧪 Test locally (required for ES6 modules):")
+    print(f"   cd {docs_dir}")
+    print("   python3 -m http.server 8000")
+    print("   Then open: http://localhost:8000")
+    print()
+    print("⚠️  Note: DO NOT open index.html directly with file://")
+    print("   ES6 modules require HTTP/HTTPS protocol due to CORS")
     print()
     print("📋 Deploy to GitHub Pages:")
     print("   git add docs/")

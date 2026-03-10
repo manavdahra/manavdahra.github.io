@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }} - Manav Dahra{% endblock %}
+
+{% block content %}
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js",
+    "cannon-es-debugger": "https://cdn.jsdelivr.net/npm/cannon-es-debugger@1.0.0/dist/cannon-es-debugger.js"
+  }
+}
+</script>
+<style>
+    .game-container {
+        margin: 2rem auto;
+    }
+    
+    .game-content {
+        position: relative;
+        width: 100%;
+        height: 600px;
+        background: #1f2127;
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 2rem 0;
+        border: 1px solid var(--border-color);
+    }
+    
+    .game-overlay {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(31, 33, 39, 0.9);
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        text-align: center;
+        color: var(--text-primary);
+        z-index: 10;
+        border: 1px solid var(--border-color);
+    }
+    
+    .game-overlay h3 {
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+    }
+    
+    .intro-canvas {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .icon {
+        display: inline-block;
+        padding: 2px 6px;
+        margin: 0 2px;
+        background: rgba(189, 183, 107, 0.2);
+        border: 1px solid var(--primary-color);
+        border-radius: 3px;
+        font-size: 1.1em;
+        font-weight: bold;
+        vertical-align: middle;
+        font-style: normal;
+    }
+    
+    .game-description {
+        background: var(--bg-secondary);
+        padding: 2rem;
+        border-radius: 8px;
+        margin: 2rem 0;
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .game-description h3 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+    
+    .game-description ul {
+        margin-left: 1.5rem;
+    }
+    
+    .game-description li {
+        margin: 0.5rem 0;
+    }
+</style>
+
+<article class="blog-post">
+    <header class="post-header">
+        <div class="container-narrow">
+            <div class="post-meta-top">
+                <span class="post-category">{{ post.category }}</span>
+                <span class="post-date">{{ post.date|format_date }}</span>
+            </div>
+            <h1 class="post-title-large">{{ post.title }}</h1>
+            <p class="post-excerpt-large">{{ post.excerpt }}</p>
+            <div class="post-meta-bottom">
+                <span class="post-read-time">{{ post.read_time }}</span>
+                <div class="post-tags-large">
+                    {% for tag in post.tags %}
+                    <span class="tag">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="post-content">
+        <div class="container-narrow">
+            <div class="game-container">
+                <div class="game-content">
+                    <div class="game-overlay">
+                        <!-- Overlay message will be updated dynamically based on device type -->
+                    </div>
+                    <div id="intro-canvas" class="intro-canvas"></div>
+                </div>
+            </div>
+            
+            <div class="game-description">
+                <h3>About This Demo</h3>
+                <p>This is a 3D snake game built using modern web technologies:</p>
+                <ul>
+                    <li><strong>Three.js</strong> - WebGL renderer for 3D graphics</li>
+                    <li><strong>Cannon.js</strong> - Physics engine for realistic movement</li>
+                    <li><strong>CSS2DRenderer</strong> - For HUD overlays</li>
+                </ul>
+                
+                <h3 style="margin-top: 1.5rem;">How to Play</h3>
+                <ul>
+                    <li><strong>Desktop:</strong> Use arrow keys (←, ↑, →) to control the snake</li>
+                    <li><strong>Mobile:</strong> Tap and hold to move, swipe left/right to turn</li>
+                </ul>
+                
+                <p style="margin-top: 1rem;">
+                    The game features a camera that follows the snake, realistic physics simulation, 
+                    and responsive controls that adapt to your device type.
+                </p>
+            </div>
+            
+            <!-- Blog post content -->
+            {% if post.content %}
+            <div class="blog-content">
+                {{ post.content|safe }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <footer class="post-footer">
+        <div class="container-narrow">
+            <div class="post-footer-content">
+                <p>Enjoyed the demo? Check out the <a href="https://github.com/manavdahra" target="_blank">source code on GitHub</a> or explore more content on my <a href="/blog">blog</a>.</p>
+            </div>
+            <div class="post-navigation">
+                <a href="/blog" class="btn btn-outline">← Back to Blog</a>
+            </div>
+        </div>
+    </footer>
+</article>
+
+<script type="module" src="/game/main.js"></script>
+{% endblock %}

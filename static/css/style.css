@@ -449,6 +449,18 @@ body {
     color: var(--text-secondary);
 }
 
+.post-content a,
+.blog-content a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.post-content a:hover,
+.blog-content a:hover {
+    text-decoration: underline;
+    color: var(--secondary-color);
+}
+
 .post-footer {
     padding: 3rem 0;
     border-top: 1px solid var(--border-color);

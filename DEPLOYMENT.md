@@ -1,17 +1,17 @@
-# GitHub Pages Deployment Guide
+# Deployment Documentation
 
-Your blog has been set up for static site generation and is ready to deploy to GitHub Pages!
+This repository contains a static blog generated from Flask templates and Markdown content, deployed via GitHub Pages.
 
-## 🚀 Quick Deploy
+## Deployment Process
 
-### 1. Generate Static Files
+### Generate Static Files
 ```bash
 python freeze.py
 ```
 
-This creates a `docs/` folder with all the static HTML, CSS, and assets.
+Creates the `docs/` directory with static HTML, CSS, and assets.
 
-### 2. Commit to GitHub
+### Commit and Push
 ```bash
 git add docs/
 git add freeze.py
@@ -19,40 +19,28 @@ git commit -m "Add static site for GitHub Pages"
 git push origin main
 ```
 
-### 3. Enable GitHub Pages
+### GitHub Pages Configuration
 
-1. Go to your repository on GitHub
-2. Click **Settings** → **Pages** (in the left sidebar)
-3. Under "Source", select:
-   - **Branch**: `main`
-   - **Folder**: `/docs`
-4. Click **Save**
+Repository Settings → Pages:
+- **Branch**: `main`
+- **Folder**: `/docs`
 
-### 4. Access Your Blog
+Site URL: `https://<username>.github.io/dev-blog/`
 
-Your blog will be available at:
-```
-https://<your-username>.github.io/dev-blog/
-```
+Note: Changes typically propagate within 1-2 minutes.
 
-For example: `https://manavdahra.github.io/dev-blog/`
+## Adding New Blog Posts
 
-⏱️ It usually takes 1-2 minutes for the site to go live after pushing.
+### Create Markdown File
 
----
-
-## 📝 Adding New Blog Posts
-
-### Step 1: Write Content
-
-Create a new Markdown file in the `posts/` directory:
+Add content to `posts/` directory:
 ```bash
 posts/my-new-post.md
 ```
 
-### Step 2: Add Metadata
+### Update Post Registry
 
-Edit `app.py` and add your post to the `BLOG_POSTS` list:
+Edit `app.py` and add entry to `BLOG_POSTS`:
 
 ```python
 {
@@ -67,27 +55,21 @@ Edit `app.py` and add your post to the `BLOG_POSTS` list:
 }
 ```
 
-### Step 3: Regenerate & Deploy
+### Deploy Updated Content
 
 ```bash
-# Generate static files
 python freeze.py
-
-# Commit and push
 git add docs/ app.py posts/
 git commit -m "Add new blog post: My New Post"
 git push
 ```
 
-Your new post will be live in 1-2 minutes!
 
----
+## Customization
 
-## 🎨 Customizing
+### Color Scheme
 
-### Update Colors
-
-Edit `static/css/style.css` - the CSS variables at the top:
+Modify CSS variables in `static/css/style.css`:
 
 ```css
 :root {
@@ -98,17 +80,17 @@ Edit `static/css/style.css` - the CSS variables at the top:
 }
 ```
 
-After making changes:
+Regenerate and deploy:
 ```bash
-python freeze.py  # Regenerate
+python freeze.py
 git add docs/
 git commit -m "Update styling"
 git push
 ```
 
-### Update About Page
+### About Page Content
 
-Edit the content in `templates/about.html`, then regenerate:
+Edit `templates/about.html`, then regenerate:
 
 ```bash
 python freeze.py
@@ -117,24 +99,22 @@ git commit -m "Update about page"
 git push
 ```
 
----
+## Troubleshooting
 
-## 🔧 Troubleshooting
+### Page Updates Not Reflecting
 
-### Pages Not Updating?
-
-1. Clear your browser cache (Ctrl+Shift+R or Cmd+Shift+R)
+1. Clear browser cache (Ctrl+Shift+R or Cmd+Shift+R)
 2. Check GitHub Actions tab for build errors
-3. Make sure you ran `python freeze.py` before pushing
+3. Verify `python freeze.py` was run before pushing
 
-### CSS Not Loading?
+### CSS Not Loading
 
-Make sure the `.nojekyll` file exists in the `docs/` folder:
+Verify `.nojekyll` file exists in `docs/`:
 ```bash
 ls docs/.nojekyll
 ```
 
-If missing:
+If missing, create it:
 ```bash
 touch docs/.nojekyll
 git add docs/.nojekyll
@@ -142,84 +122,79 @@ git commit -m "Add .nojekyll"
 git push
 ```
 
-### Wrong URL Structure?
+### URL Structure Issues
 
 GitHub Pages expects:
 - Homepage: `/docs/index.html`
 - Pages: `/docs/page-name/index.html`
 
-The freeze script handles this automatically.
+The `freeze.py` script handles this structure automatically.
 
----
+## Custom Domain (Optional)
 
-## 🌐 Custom Domain (Optional)
+### Setup Steps
 
-### Using a Custom Domain
-
-1. Add a `CNAME` file to `docs/`:
+1. Create CNAME file in `docs/`:
    ```bash
    echo "yourdomain.com" > docs/CNAME
    ```
 
-2. Configure DNS:
-   - Add A records pointing to GitHub's IPs:
+2. Configure DNS records:
+   - A records pointing to GitHub Pages IPs:
      - 185.199.108.153
      - 185.199.109.153
      - 185.199.110.153
      - 185.199.111.153
-   - Or CNAME to `<username>.github.io`
+   - Or CNAME record to `<username>.github.io`
 
-3. In GitHub Settings → Pages:
-   - Enter your custom domain
-   - Check "Enforce HTTPS"
+3. GitHub Settings → Pages:
+   - Enter custom domain
+   - Enable "Enforce HTTPS"
 
----
-
-## 📦 Project Structure
+## Project Structure
 
 ```
 dev-blog/
-├── app.py              # Flask application (development)
+├── app.py              # Flask application (development server)
 ├── freeze.py           # Static site generator
 ├── templates/          # HTML templates
 ├── static/css/         # Stylesheets
 ├── posts/             # Blog post content (Markdown)
-└── docs/              # Generated static site (GitHub Pages serves from here)
-    ├── .nojekyll      # Tells GitHub not to use Jekyll
+└── docs/              # Generated static site (served by GitHub Pages)
+    ├── .nojekyll      # Disables Jekyll processing
     ├── index.html     # Homepage
     ├── about/
     ├── blog/
     └── static/
 ```
 
----
+## Development Workflow
 
-## ✨ Tips
-
-- **Preview locally**: Open `docs/index.html` in your browser before deploying
-- **Test the Flask app**: Run `python app.py` for local development with live reload
-- **Automation**: Set up a GitHub Action to run `freeze.py` automatically on push
-- **Analytics**: Add Google Analytics by editing `templates/base.html`
-
----
-
-## Need Help?
-
-Common commands:
+### Local Preview
 ```bash
-# Development server (with live reload)
+# Development server with live reload
 python app.py
 
+# Or preview static output
+open docs/index.html
+```
+
+### Build and Deploy
+```bash
 # Generate static site
 python freeze.py
 
-# Check generated files
+# Verify output
 ls -R docs/
 
-# Deploy to GitHub
+# Deploy
 git add docs/
 git commit -m "Update site"
 git push
 ```
 
-Happy blogging! 🎉
+## Future Enhancements
+
+- GitHub Action for automatic `freeze.py` execution on push
+- Google Analytics integration via `templates/base.html`
+- Additional automation as needed
