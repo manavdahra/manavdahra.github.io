@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Manav Dahra - Software Engineering & AI Interpretability{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="/">Manav Dahra</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/" class="{% if request.endpoint == 'home' %}active{% endif %}">Home</a></li>
+                <li><a href="/blog" class="{% if request.endpoint == 'blog' or request.endpoint == 'blog_post' %}active{% endif %}">Blog</a></li>
+                <li><a href="/about" class="{% if request.endpoint == 'about' %}active{% endif %}">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Manav Dahra</h3>
+                    <p>Backend Engineer & AI Interpretability Enthusiast</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <ul class="social-links">
+                        <li><a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a></li>
+                        <li><a href="https://manavdahra.github.io/" target="_blank">Portfolio</a></li>
+                        <li><a href="mailto:manav.dahra@gmail.com">Email</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Topics</h3>
+                    <ul class="topic-links">
+                        <li>Software Engineering</li>
+                        <li>AI Interpretability</li>
+                        <li>Distributed Systems</li>
+                        <li>Machine Learning</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Manav Dahra. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

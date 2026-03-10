@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mechanistic Interpretability: A Practical Introduction - Manav Dahra</title>
+    <link rel="stylesheet" href="../../static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="../../index.html">Manav Dahra</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="../../index.html" class="">Home</a></li>
+                <li><a href="../../blog/index.html" class="active">Blog</a></li>
+                <li><a href="../../about/index.html" class="">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        
+<article class="blog-post">
+    <header class="post-header">
+        <div class="container-narrow">
+            <div class="post-meta-top">
+                <span class="post-category">AI Interpretability</span>
+                <span class="post-date">March 01, 2026</span>
+            </div>
+            <h1 class="post-title-large">Mechanistic Interpretability: A Practical Introduction</h1>
+            <p class="post-excerpt-large">An introduction to mechanistic interpretability and why understanding model internals matters for AI safety.</p>
+            <div class="post-meta-bottom">
+                <span class="post-read-time">12 min read</span>
+                <div class="post-tags-large">
+                    
+                    <span class="tag">interpretability</span>
+                    
+                    <span class="tag">transformers</span>
+                    
+                    <span class="tag">ai-safety</span>
+                    
+                    <span class="tag">pytorch</span>
+                    
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="post-content">
+        <div class="container-narrow">
+            <h1>Mechanistic Interpretability: A Practical Introduction</h1>
+<p>After spending months replicating papers from Anthropic's interpretability team and completing the ARENA curriculum, I've become convinced that mechanistic interpretability is one of the most important areas in AI safety. Let me share what I've learned and why it matters.</p>
+<h2>What is Mechanistic Interpretability?</h2>
+<p>Mechanistic interpretability is the study of <strong>reverse engineering neural networks</strong> - understanding not just what models do, but <strong>how they do it</strong> at the level of neurons, attention heads, and circuits. It's like debugging a program, except the "program" wrote itself during training.</p>
+<p>Traditional interpretability asks: "What features does this model use?"</p>
+<p>Mechanistic interpretability asks: "What is the <strong>algorithm</strong> the model learned? How do its components work together?"</p>
+<h2>Why Does This Matter?</h2>
+<p>As we deploy increasingly powerful AI systems, we need to:</p>
+<ol>
+<li><strong>Detect deception</strong>: Can we tell if a model is lying or pursuing hidden goals?</li>
+<li><strong>Ensure alignment</strong>: Does the model actually optimize for what we want?</li>
+<li><strong>Predict failures</strong>: Can we anticipate dangerous behaviors before deployment?</li>
+<li><strong>Build trust</strong>: Can we verify claims about model capabilities?</li>
+</ol>
+<p>Black-box testing isn't enough. We need to look inside.</p>
+<h2>The TransformerLens Toolkit</h2>
+<p>My go-to library for interpretability research is <a href="https://github.com/neelnanda-io/TransformerLens">TransformerLens</a> by Neel Nanda. It's built on PyTorch and makes it easy to access model internals.</p>
+<h3>Basic Setup</h3>
+<pre class="codehilite"><code class="language-python">import torch
+from transformer_lens import HookedTransformer
+
+# Load a model
+model = HookedTransformer.from_pretrained(&quot;gpt2-small&quot;)
+
+# Run a forward pass and cache activations
+prompt = &quot;The Eiffel Tower is in&quot;
+logits, cache = model.run_with_cache(prompt)
+
+# Access any activation
+attn_pattern = cache[&quot;pattern&quot;, 0]  # Layer 0 attention patterns
+mlp_out = cache[&quot;mlp_out&quot;, 5]       # Layer 5 MLP outputs
+</code></pre>
+
+<p>The power here is the <code>cache</code> object - it stores every intermediate activation, making it trivial to analyze what's happening inside the model.</p>
+<h2>Key Concepts</h2>
+<h3>1. Attention Patterns</h3>
+<p>Attention heads learn to attend to relevant tokens. Visualizing these patterns reveals algorithmic structure.</p>
+<pre class="codehilite"><code class="language-python">import circuitsvis as cv
+
+# Visualize attention patterns
+tokens = model.to_str_tokens(prompt)
+attention_pattern = cache[&quot;pattern&quot;, 0]  # [batch, head, query_pos, key_pos]
+
+# Interactive visualization
+cv.attention.attention_patterns(
+    tokens=tokens,
+    attention=attention_pattern[0],  # First batch item
+)
+</code></pre>
+
+<p><strong>Common attention head types:</strong>
+- <strong>Previous token heads</strong>: Attend to the token immediately before
+- <strong>Induction heads</strong>: Enable in-context learning by copying patterns
+- <strong>Skip-trigram heads</strong>: Look for specific patterns across multiple tokens</p>
+<h3>2. Logit Attribution</h3>
+<p>Which components contribute most to a prediction?</p>
+<pre class="codehilite"><code class="language-python"># Decompose the logits by component
+logit_attr = cache.accumulated_resid(layer=-1, return_labels=True)
+
+# See which layers contribute to predicting &quot;Paris&quot;
+paris_token_id = model.to_single_token(&quot; Paris&quot;)
+final_logit = logit_attr[:, -1, paris_token_id]  # Last position
+
+# Print contribution by layer
+for layer in range(model.cfg.n_layers):
+    contribution = final_logit[layer].item()
+    print(f&quot;Layer {layer}: {contribution:.3f}&quot;)
+</code></pre>
+
+<h3>3. Activation Patching (Causal Interventions)</h3>
+<p>The gold standard for proving causality: change an activation and measure the effect.</p>
+<pre class="codehilite"><code class="language-python">def patch_attention_head(corrupted_cache, clean_cache, layer, head):
+    &quot;&quot;&quot;Replace corrupted activation with clean activation for one head&quot;&quot;&quot;
+    def hook_fn(activation, hook):
+        activation[:, :, head] = clean_cache[hook.name][:, :, head]
+        return activation
+
+    return (f&quot;blocks.{layer}.attn.hook_result&quot;, hook_fn)
+
+# Run model on corrupted input with patched activation
+patched_logits = model.run_with_hooks(
+    corrupted_prompt,
+    fwd_hooks=[patch_attention_head(corrupted_cache, clean_cache, layer=4, head=7)]
+)
+</code></pre>
+
+<p>This technique lets you ask: "Is attention head 4.7 causally important for this behavior?"</p>
+<h2>A Real Example: Finding Induction Heads</h2>
+<p>Induction heads are crucial for in-context learning. They learn the pattern: when you see [A][B] ... [A], predict [B].</p>
+<pre class="codehilite"><code class="language-python"># Test sequence with repeated pattern
+test_prompt = &quot;The cat sat on the mat. The cat&quot;
+# Model should predict &quot; sat&quot; by copying from earlier
+
+def detect_induction_heads(model, prompt):
+    logits, cache = model.run_with_cache(prompt)
+
+    for layer in range(model.cfg.n_layers):
+        for head in range(model.cfg.n_heads):
+            pattern = cache[&quot;pattern&quot;, layer][0, head]  # [query_pos, key_pos]
+
+            # Induction heads show diagonal + offset pattern
+            # They attend to tokens that came after previous occurrences
+            diagonal_score = pattern.diagonal(offset=-1).mean()
+
+            if diagonal_score &gt; 0.4:  # Threshold
+                print(f&quot;Induction head found: Layer {layer}, Head {head}&quot;)
+                print(f&quot;  Diagonal score: {diagonal_score:.3f}&quot;)
+
+detect_induction_heads(model, test_prompt)
+</code></pre>
+
+<h2>Current Research Frontiers</h2>
+<h3>Superposition</h3>
+<p>Models store <strong>more features than they have dimensions</strong> by representing features in a sparse, overlapping way. This is both amazing (efficient!) and concerning (hard to interpret!).</p>
+<p>Key paper: <a href="https://transformer-circuits.pub/2022/toy_model/index.html">Toy Models of Superposition</a> (Anthropic)</p>
+<h3>Circuits</h3>
+<p>Small, interpretable subgraphs of the network that perform specific computations. Like finding "functions" in the neural network.</p>
+<p>Example circuits:
+- <strong>IOI Circuit</strong> (Indirect Object Identification): "John gave Mary a gift, he gave her..."
+- <strong>Docstring Circuit</strong>: Code completion based on docstrings
+- <strong>Greater-Than Circuit</strong>: Comparing numbers</p>
+<h3>Sparse Autoencoders (SAEs)</h3>
+<p>A new technique for finding interpretable features in superposition:</p>
+<pre class="codehilite"><code class="language-python"># Train a sparse autoencoder on MLP activations
+# Forces the model to represent activations as sparse combinations
+# of learned dictionary features
+
+autoencoder = SparseAutoencoder(
+    input_dim=model.cfg.d_mlp,
+    hidden_dim=model.cfg.d_mlp * 8,  # Overcomplete
+    sparsity_coef=1e-3
+)
+
+# Each dictionary feature represents a human-interpretable concept
+</code></pre>
+
+<h2>Practical Tips from Research</h2>
+<h3>1. Start Small</h3>
+<p>Don't jump straight to GPT-4. Use small models like <code>gpt2-small</code> or <code>GPT-2-medium</code>. They're:
+- Faster to run
+- Easier to visualize
+- Still exhibit interesting behaviors</p>
+<h3>2. Ablation Everything</h3>
+<p>Remove components systematically:
+- Zero out attention heads
+- Knock out MLP layers
+- Patch individual neurons</p>
+<p>If the behavior persists, that component isn't critical.</p>
+<h3>3. Use Diverse Prompts</h3>
+<p>Test your hypotheses across multiple examples. A pattern you see on one prompt might be an artifact.</p>
+<h3>4. Visualize, Visualize, Visualize</h3>
+<p>Tools like <code>circuitsvis</code>, <code>plotly</code>, and <code>matplotlib</code> are essential. If you can't see it, you can't understand it.</p>
+<h2>Challenges and Limitations</h2>
+<h3>Polysemanticity</h3>
+<p>Neurons often respond to <strong>multiple unrelated concepts</strong>. This makes interpretation harder - you can't just label a neuron as "the cat detector."</p>
+<h3>Scale</h3>
+<p>Modern models have billions of parameters. Even with automation, comprehensive analysis is infeasible. We need better tools and abstractions.</p>
+<h3>Verification</h3>
+<p>How do we know our interpretations are correct? We need rigorous causal testing, not just correlation.</p>
+<h2>Getting Started</h2>
+<p>Here's my recommended learning path:</p>
+<ol>
+<li><strong>ARENA Curriculum</strong> - Comprehensive, hands-on exercises</li>
+<li><strong>Neel Nanda's Walkthrough Videos</strong> - Fantastic intuition-building</li>
+<li><strong>Anthropic's Research</strong> - State-of-the-art papers</li>
+<li><strong>Replicate Papers</strong> - Build intuition by reimplementing findings</li>
+</ol>
+<h2>My Current Focus</h2>
+<p>I'm currently working on:
+- Replicating the <strong>IOI circuit</strong> findings
+- Exploring <strong>sparse autoencoders</strong> for feature extraction<br />
+- Investigating <strong>attention head composition</strong> patterns
+- Contributing to open-source interpretability tools</p>
+<h2>Conclusion</h2>
+<p>Mechanistic interpretability is hard. Neural networks are complex, our tools are still primitive, and the field is young. But it's also incredibly important.</p>
+<p>As AI systems become more powerful, we can't afford to treat them as black boxes. We need to understand what they're doing, how they're doing it, and whether we can trust them.</p>
+<p>The good news? The field is growing fast, the tools are improving, and we're making real progress. If you care about AI safety, this is one of the most impactful areas to work on.</p>
+<hr />
+<p><strong>Key Resources:</strong>
+- <a href="https://github.com/neelnanda-io/TransformerLens">TransformerLens</a>
+- <a href="https://www.arena.education/">ARENA Curriculum</a>
+- <a href="https://transformer-circuits.pub/">Anthropic's Interpretability Research</a>
+- <a href="https://www.neelnanda.io/">Neel Nanda's Blog</a></p>
+<p>Want to discuss interpretability? Reach out - I'm always excited to talk about this stuff!</p>
+        </div>
+    </div>
+    
+    <footer class="post-footer">
+        <div class="container-narrow">
+            <div class="post-footer-content">
+                <p>Thanks for reading! If you found this helpful, feel free to share it or reach out on <a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a>.</p>
+            </div>
+            <div class="post-navigation">
+                <a href="../../blog/index.html" class="btn btn-outline">← Back to Blog</a>
+            </div>
+        </div>
+    </footer>
+</article>
+
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Manav Dahra</h3>
+                    <p>Backend Engineer & AI Interpretability Enthusiast</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <ul class="social-links">
+                        <li><a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a></li>
+                        <li><a href="https://manavdahra.github.io/" target="_blank">Portfolio</a></li>
+                        <li><a href="mailto:manav.dahra@gmail.com">Email</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Topics</h3>
+                    <ul class="topic-links">
+                        <li>Software Engineering</li>
+                        <li>AI Interpretability</li>
+                        <li>Distributed Systems</li>
+                        <li>Machine Learning</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Manav Dahra. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transformer Circuits: Understanding Attention Mechanisms - Manav Dahra</title>
+    <link rel="stylesheet" href="../../static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="../../index.html">Manav Dahra</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="../../index.html" class="">Home</a></li>
+                <li><a href="../../blog/index.html" class="active">Blog</a></li>
+                <li><a href="../../about/index.html" class="">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        
+<article class="blog-post">
+    <header class="post-header">
+        <div class="container-narrow">
+            <div class="post-meta-top">
+                <span class="post-category">AI Interpretability</span>
+                <span class="post-date">February 15, 2026</span>
+            </div>
+            <h1 class="post-title-large">Transformer Circuits: Understanding Attention Mechanisms</h1>
+            <p class="post-excerpt-large">Breaking down how attention mechanisms work in transformers using TransformerLens and circuit analysis.</p>
+            <div class="post-meta-bottom">
+                <span class="post-read-time">15 min read</span>
+                <div class="post-tags-large">
+                    
+                    <span class="tag">transformers</span>
+                    
+                    <span class="tag">attention</span>
+                    
+                    <span class="tag">interpretability</span>
+                    
+                    <span class="tag">neural-networks</span>
+                    
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="post-content">
+        <div class="container-narrow">
+            <h1>Transformer Circuits: Understanding Attention Mechanisms</h1>
+<p>After replicating several papers from Anthropic's interpretability team and working through the ARENA curriculum, I've developed a deeper appreciation for how transformers actually work. Let me walk you through understanding attention mechanisms from a circuits perspective.</p>
+<h2>What Are Transformer Circuits?</h2>
+<p>Think of a neural network like a circuit board. Individual components (attention heads, MLP layers, neurons) are connected in complex ways to perform specific computations. A <strong>circuit</strong> is a subgraph of the network that implements a coherent algorithm.</p>
+<p>The circuits framework asks: <strong>What is the algorithm that this part of the network learned?</strong> Not just "what does it activate on?" but "what computation does it perform?"</p>
+<h2>Attention: The Core Mechanism</h2>
+<p>Attention is how transformers route information between positions. Let me break down what's <strong>actually</strong> happening mathematically and algorithmically.</p>
+<h3>The Math</h3>
+<p>For a sequence of tokens with embeddings $X \in \mathbb{R}^{n \times d}$:</p>
+<p>$$
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+$$</p>
+<p>Where:
+- $Q = XW_Q$ (queries) - "what am I looking for?"
+- $K = XW_K$ (keys) - "what do I contain?"
+- $V = XW_V$ (values) - "what information do I send?"</p>
+<h3>The Intuition</h3>
+<p>Each token asks a question (query) and every other token offers information (key-value pairs). Attention weights determine how much to "listen" to each token.</p>
+<p>But that's the textbook version. Let's dig deeper.</p>
+<h2>Types of Attention Heads</h2>
+<p>Through mechanistic interpretability research, we've discovered that attention heads learn <strong>specific algorithms</strong>:</p>
+<h3>1. Previous Token Heads</h3>
+<p>The simplest pattern: always attend to the previous token.</p>
+<pre class="codehilite"><code class="language-python">import torch
+from transformer_lens import HookedTransformer
+
+model = HookedTransformer.from_pretrained(&quot;gpt2-small&quot;)
+
+# Test prompt
+prompt = &quot;The cat sat on the mat and&quot;
+logits, cache = model.run_with_cache(prompt)
+
+# Check attention pattern for layer 0, head 0
+attention = cache[&quot;pattern&quot;, 0][0, 0]  # [query_pos, key_pos]
+
+# Previous token heads show strong diagonal (offset by -1)
+print(&quot;Attention pattern diagonal scores:&quot;)
+for offset in range(-3, 1):
+    score = attention.diagonal(offset).mean().item()
+    print(f&quot;Offset {offset}: {score:.3f}&quot;)
+</code></pre>
+
+<p><strong>Why does this matter?</strong> Previous token heads enable simple bigram statistics - the model learns "what typically comes after this token?"</p>
+<h3>2. Induction Heads</h3>
+<p>One of the most important discoveries in transformer circuits. Induction heads enable <strong>in-context learning</strong>.</p>
+<p><strong>The Pattern:</strong> [A][B] ... [A] → predict [B]</p>
+<pre class="codehilite"><code class="language-python"># Classic induction test
+test_prompts = [
+    &quot;The cat sat on the mat. The cat&quot;,  # Should predict &quot; sat&quot;
+    &quot;Alice went to the store. Alice&quot;,    # Should predict &quot; went&quot;
+    &quot;print hello world\nprint hello&quot;,     # Should predict &quot; world&quot;
+]
+
+def find_induction_heads(model, prompts):
+    &quot;&quot;&quot;Find heads that implement induction&quot;&quot;&quot;
+    for layer in range(model.cfg.n_layers):
+        for head in range(model.cfg.n_heads):
+            scores = []
+
+            for prompt in prompts:
+                logits, cache = model.run_with_cache(prompt)
+                pattern = cache[&quot;pattern&quot;, layer][0, head]
+
+                # Induction heads attend to tokens after previous copies
+                # Check if pattern shows this structure
+                # ... implementation details ...
+
+            if is_induction_head(scores):
+                print(f&quot;Induction head: Layer {layer}, Head {head}&quot;)
+
+find_induction_heads(model, test_prompts)
+</code></pre>
+
+<p><strong>Discovery:</strong> Induction heads emerge around layer 3-4 in GPT-2 Small. This is when the model suddenly gets much better at in-context learning.</p>
+<h3>3. Composition: K-Composition and V-Composition</h3>
+<p>Attention heads <strong>compose</strong> - the output of one head becomes input to another.</p>
+<p><strong>K-Composition:</strong> Earlier head determines where later head attends</p>
+<pre class="codehilite"><code class="language-python"># Layer 0 head identifies &quot;the noun&quot;
+# Layer 1 head attends to &quot;the noun&quot; to incorporate its information
+</code></pre>
+
+<p><strong>V-Composition:</strong> Earlier head computes features, later head moves them</p>
+<pre class="codehilite"><code class="language-python"># Layer 0 head: &quot;is this word capitalized?&quot;
+# Layer 1 head: attends to first token, accumulates &quot;capitalization&quot; info
+</code></pre>
+
+<p>This is how transformers build hierarchical abstractions!</p>
+<h2>Deep Dive: The Induction Circuit</h2>
+<p>Let me walk through the full induction circuit - it's a beautiful example of algorithmic discovery.</p>
+<h3>Components</h3>
+<ol>
+<li><strong>Previous Token Head</strong> (often Layer 0)</li>
+<li>
+<p>Stores "what came after each token last time"</p>
+</li>
+<li>
+<p><strong>Induction Head</strong> (often Layer 4-5)</p>
+</li>
+<li>Attends to the position stored by previous token head</li>
+<li>Copies the value from that position</li>
+</ol>
+<h3>The Algorithm in Detail</h3>
+<p>For prompt: "The cat sat on the mat. The cat"</p>
+<p><strong>Step 1:</strong> Previous token head processes first "cat"
+- Sees: "The <strong>cat</strong> sat"
+- Stores in position[cat]: "next token is 'sat'"</p>
+<p><strong>Step 2:</strong> Induction head processes second "cat"
+- Query from "cat" position
+- Uses K-composition to find previous "cat"
+- Attends to token after previous "cat" (which is "sat")
+- Copies "sat" representation</p>
+<p><strong>Result:</strong> Model predicts "sat"!</p>
+<h3>Implementation</h3>
+<pre class="codehilite"><code class="language-python">def analyze_induction_circuit(model, prompt):
+    &quot;&quot;&quot;Analyze how induction circuit processes this prompt&quot;&quot;&quot;
+
+    logits, cache = model.run_with_cache(prompt)
+    tokens = model.to_str_tokens(prompt)
+
+    # Find repeated token
+    repeated_pos = -1  # Position of second occurrence
+    repeated_token = tokens[repeated_pos]
+    first_pos = tokens.index(repeated_token)
+
+    # Analyze previous token head (assume layer 0, head 5)
+    prev_head_pattern = cache[&quot;pattern&quot;, 0][0, 5]
+    print(f&quot;Previous token head attention from '{repeated_token}':&quot;)
+    print(f&quot;  Attends to previous position: {prev_head_pattern[repeated_pos, repeated_pos-1]:.3f}&quot;)
+
+    # Analyze induction head (assume layer 4, head 3)
+    induction_pattern = cache[&quot;pattern&quot;, 4][0, 3]
+    print(f&quot;\nInduction head attention from '{repeated_token}':&quot;)
+    print(f&quot;  Attends to first '{repeated_token}': {induction_pattern[repeated_pos, first_pos]:.3f}&quot;)
+    print(f&quot;  Attends after first '{repeated_token}': {induction_pattern[repeated_pos, first_pos+1]:.3f}&quot;)
+
+    # What does it predict?
+    predicted_token_id = logits[0, repeated_pos].argmax()
+    predicted_token = model.to_string(predicted_token_id)
+    actual_next = tokens[first_pos + 1]
+
+    print(f&quot;\nPrediction: '{predicted_token}'&quot;)
+    print(f&quot;Expected (from pattern): '{actual_next}'&quot;)
+    print(f&quot;Match: {predicted_token == actual_next}&quot;)
+
+analyze_induction_circuit(model, &quot;The cat sat on the mat. The cat&quot;)
+</code></pre>
+
+<h2>Attention Head Composition Circuits</h2>
+<p>The real power comes from composition. Let me show you a more complex circuit.</p>
+<h3>The IOI Circuit (Indirect Object Identification)</h3>
+<p>For sentences like: "When John and Mary went to the store, John gave a drink to"</p>
+<p>The model should predict "Mary" (the indirect object).</p>
+<p><strong>Circuit components:</strong>
+1. <strong>Name Mover Heads:</strong> Move name information to final position
+2. <strong>Negative Name Mover Heads:</strong> Suppress the subject name (John)
+3. <strong>S-Inhibition Heads:</strong> Identify subject vs. indirect object
+4. <strong>Duplicate Token Heads:</strong> Identify repeated names</p>
+<pre class="codehilite"><code class="language-python">def analyze_ioi_circuit(model):
+    &quot;&quot;&quot;Analyze Indirect Object Identification circuit&quot;&quot;&quot;
+
+    prompt = &quot;When John and Mary went to the store, John gave a drink to&quot;
+    logits, cache = model.run_with_cache(prompt)
+
+    # Identify key positions
+    io_pos = 3   # &quot;Mary&quot; (indirect object)
+    s_pos = 9    # &quot;John&quot; (subject)
+    end_pos = -1 # Final position
+
+    # Check Name Mover Heads (move Mary's info to end)
+    for layer in [9, 10]:  # Typical NMH layers
+        for head in range(model.cfg.n_heads):
+            pattern = cache[&quot;pattern&quot;, layer][0, head]
+            io_attn = pattern[end_pos, io_pos].item()
+
+            if io_attn &gt; 0.5:
+                print(f&quot;Name Mover Head: Layer {layer}, Head {head}&quot;)
+                print(f&quot;  Attention to IO (Mary): {io_attn:.3f}&quot;)
+
+    # Check Negative Name Mover Heads (suppress John)
+    # ... implementation details ...
+
+    # Verify prediction
+    predicted = model.to_string(logits[0, end_pos].argmax())
+    print(f&quot;\nPredicted: {predicted}&quot;)  # Should be &quot;Mary&quot;
+
+analyze_ioi_circuit(model)
+</code></pre>
+
+<h2>Attention as Computation</h2>
+<p>Let me share a key insight: <strong>Attention is not just "which tokens are relevant." It's a programming primitive.</strong></p>
+<h3>Attention Implements:</h3>
+<ol>
+<li><strong>Routing:</strong> Move information from position A to position B</li>
+<li><strong>Lookup:</strong> Find the token with property X</li>
+<li><strong>Aggregation:</strong> Combine information from multiple positions</li>
+<li><strong>Filtering:</strong> Select based on keys, extract via values</li>
+</ol>
+<p>This is why transformers are so powerful - they learn to write their own routing logic!</p>
+<h2>Practical Techniques for Analysis</h2>
+<h3>1. Activation Patching</h3>
+<p>The gold standard for proving causality:</p>
+<pre class="codehilite"><code class="language-python">def patch_head(model, clean_prompt, corrupt_prompt, layer, head):
+    &quot;&quot;&quot;
+    Run model on corrupted input, but patch in clean activation
+    for one specific head. Measure impact on output.
+    &quot;&quot;&quot;
+
+    # Get clean activation
+    _, clean_cache = model.run_with_cache(clean_prompt)
+    clean_head_out = clean_cache[&quot;result&quot;, layer][:, :, head]
+
+    # Patch into corrupted run
+    def hook_fn(activation, hook):
+        activation[:, :, head] = clean_head_out
+        return activation
+
+    patched_logits = model.run_with_hooks(
+        corrupt_prompt,
+        fwd_hooks=[(f&quot;blocks.{layer}.attn.hook_result&quot;, hook_fn)]
+    )
+
+    return patched_logits
+
+# If patching restores correct behavior, that head is important!
+</code></pre>
+
+<h3>2. Attention Pattern Visualization</h3>
+<pre class="codehilite"><code class="language-python">import circuitsvis as cv
+
+def visualize_attention(model, prompt, layer, head):
+    &quot;&quot;&quot;Interactive attention visualization&quot;&quot;&quot;
+
+    logits, cache = model.run_with_cache(prompt)
+    tokens = model.to_str_tokens(prompt)
+    pattern = cache[&quot;pattern&quot;, layer][0, head]
+
+    cv.attention.attention_patterns(
+        tokens=tokens,
+        attention=pattern.unsqueeze(0),  # Add head dimension
+        attention_head_names=[f&quot;L{layer}H{head}&quot;]
+    )
+
+visualize_attention(model, &quot;The cat sat on the mat&quot;, layer=0, head=5)
+</code></pre>
+
+<h3>3. Logit Lens</h3>
+<p>See what the model "thinks" at each layer:</p>
+<pre class="codehilite"><code class="language-python">def logit_lens(model, prompt):
+    &quot;&quot;&quot;Show predicted tokens at each layer&quot;&quot;&quot;
+
+    logits, cache = model.run_with_cache(prompt)
+
+    for layer in range(model.cfg.n_layers):
+        # Get residual stream at this layer
+        resid = cache[&quot;resid_post&quot;, layer][0, -1]  # Last position
+
+        # Project to vocabulary
+        layer_logits = model.unembed(model.ln_final(resid))
+        predicted = model.to_string(layer_logits.argmax())
+
+        print(f&quot;Layer {layer}: {predicted}&quot;)
+
+logit_lens(model, &quot;The capital of France is&quot;)
+</code></pre>
+
+<h2>Current Research Questions</h2>
+<h3>1. Universality</h3>
+<p>Do different models learn the same circuits? Evidence suggests yes - induction heads appear reliably around layer ⅓ of most transformers.</p>
+<h3>2. Superposition in Attention</h3>
+<p>Can attention heads implement multiple algorithms simultaneously? Preliminary evidence says yes, via superposition.</p>
+<h3>3. Attention Head Diversity</h3>
+<p>Why does GPT-2 have 12 heads per layer? Would 1 large head work? 100 small heads? </p>
+<p>Hypothesis: Different heads specialize in different composition types.</p>
+<h2>Conclusion</h2>
+<p>Attention is the fundamental building block of transformers, but it's more sophisticated than "selective focus." Attention heads implement <strong>learned algorithms</strong> that compose to build complex behaviors.</p>
+<p>By studying circuits, we can:
+- Understand what models actually do
+- Predict when they'll fail
+- Design better architectures
+- Ensure AI safety</p>
+<p>The field is young, and there's so much left to discover. Every paper I replicate raises more questions than it answers. But that's what makes it exciting!</p>
+<hr />
+<p><strong>Key Papers:</strong>
+- <a href="https://transformer-circuits.pub/2021/framework/index.html">A Mathematical Framework for Transformer Circuits</a>
+- <a href="https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html">In-context Learning and Induction Heads</a>
+- <a href="https://transformer-circuits.pub/2023/interpretability-in-the-wild/index.html">Interpretability in the Wild</a></p>
+<p>Want to discuss attention mechanisms or circuits? I'm always up for a deep technical conversation!</p>
+        </div>
+    </div>
+    
+    <footer class="post-footer">
+        <div class="container-narrow">
+            <div class="post-footer-content">
+                <p>Thanks for reading! If you found this helpful, feel free to share it or reach out on <a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a>.</p>
+            </div>
+            <div class="post-navigation">
+                <a href="../../blog/index.html" class="btn btn-outline">← Back to Blog</a>
+            </div>
+        </div>
+    </footer>
+</article>
+
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Manav Dahra</h3>
+                    <p>Backend Engineer & AI Interpretability Enthusiast</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <ul class="social-links">
+                        <li><a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a></li>
+                        <li><a href="https://manavdahra.github.io/" target="_blank">Portfolio</a></li>
+                        <li><a href="mailto:manav.dahra@gmail.com">Email</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Topics</h3>
+                    <ul class="topic-links">
+                        <li>Software Engineering</li>
+                        <li>AI Interpretability</li>
+                        <li>Distributed Systems</li>
+                        <li>Machine Learning</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Manav Dahra. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

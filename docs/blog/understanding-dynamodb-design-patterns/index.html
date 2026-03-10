@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding DynamoDB: Design Patterns for Scale - Manav Dahra</title>
+    <link rel="stylesheet" href="../../static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="../../index.html">Manav Dahra</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="../../index.html" class="">Home</a></li>
+                <li><a href="../../blog/index.html" class="active">Blog</a></li>
+                <li><a href="../../about/index.html" class="">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        
+<article class="blog-post">
+    <header class="post-header">
+        <div class="container-narrow">
+            <div class="post-meta-top">
+                <span class="post-category">Software Engineering</span>
+                <span class="post-date">March 05, 2026</span>
+            </div>
+            <h1 class="post-title-large">Understanding DynamoDB: Design Patterns for Scale</h1>
+            <p class="post-excerpt-large">Deep dive into DynamoDB design patterns learned from building systems that serve millions of users.</p>
+            <div class="post-meta-bottom">
+                <span class="post-read-time">8 min read</span>
+                <div class="post-tags-large">
+                    
+                    <span class="tag">distributed-systems</span>
+                    
+                    <span class="tag">databases</span>
+                    
+                    <span class="tag">aws</span>
+                    
+                    <span class="tag">dynamodb</span>
+                    
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="post-content">
+        <div class="container-narrow">
+            <h1>Understanding DynamoDB: Design Patterns for Scale</h1>
+<p>After building systems on DynamoDB that serve millions of users and handle high data throughput, I've learned that successful DynamoDB usage is less about the technology itself and more about understanding its design philosophy. Let me share some key patterns and lessons.</p>
+<h2>Why DynamoDB?</h2>
+<p>DynamoDB is AWS's fully managed NoSQL database service designed for applications requiring consistent, single-digit millisecond latency at any scale. During my time at Cisco ThousandEyes, we used DynamoDB to power a distributed system running diagnostic tests on 100 million home routers, and the choice was driven by specific requirements:</p>
+<ul>
+<li><strong>Predictable performance</strong> at scale</li>
+<li><strong>No operational overhead</strong> for database management</li>
+<li><strong>Seamless scaling</strong> without downtime</li>
+<li><strong>Built-in replication</strong> for high availability</li>
+</ul>
+<h2>Key Design Principles</h2>
+<h3>1. Denormalization is Your Friend</h3>
+<p>Unlike relational databases where normalization is gospel, DynamoDB thrives on denormalization. Store related data together in the same item or table.</p>
+<pre class="codehilite"><code class="language-python"># Instead of multiple tables, use composite keys
+{
+    &quot;PK&quot;: &quot;ROUTER#12345&quot;,
+    &quot;SK&quot;: &quot;TEST#2026-03-01T10:00:00Z&quot;,
+    &quot;router_id&quot;: &quot;12345&quot;,
+    &quot;test_type&quot;: &quot;latency&quot;,
+    &quot;result&quot;: {
+        &quot;latency_ms&quot;: 45,
+        &quot;jitter&quot;: 2,
+        &quot;packet_loss&quot;: 0.1
+    },
+    &quot;location&quot;: &quot;US-WEST&quot;,
+    &quot;isp&quot;: &quot;ExampleISP&quot;
+}
+</code></pre>
+
+<h3>2. Access Patterns First, Schema Second</h3>
+<p>The cardinal rule: <strong>Know your access patterns before designing your schema</strong>. DynamoDB rewards careful upfront planning.</p>
+<p>Common questions to ask:
+- How will you query this data?
+- What are the most frequent access patterns?
+- What data do you need together?</p>
+<h3>3. Partition Key Strategy</h3>
+<p>Your partition key determines how data is distributed across partitions. Poor partition key design leads to hot partitions and throttling.</p>
+<p><strong>Good partition keys:</strong>
+- High cardinality (many unique values)
+- Evenly distributed access patterns
+- Composite when needed (e.g., <code>USER#12345</code>, <code>DEVICE#67890</code>)</p>
+<p><strong>Bad partition keys:</strong>
+- Low cardinality (e.g., status field with only 3 values)
+- Time-based keys that concentrate writes (e.g., current date)</p>
+<h3>4. Using Global Secondary Indexes (GSI) Wisely</h3>
+<p>GSIs let you query data using different keys, but they come at a cost:
+- Additional storage
+- Eventual consistency by default
+- Separate read/write capacity</p>
+<p><strong>Pro tip:</strong> Design your base table to handle your most frequent access pattern, and use GSIs for secondary patterns.</p>
+<h2>Real-World Patterns</h2>
+<h3>Pattern 1: Single Table Design</h3>
+<p>For complex applications, a single table design can reduce costs and complexity. Use the partition key (PK) and sort key (SK) creatively:</p>
+<pre class="codehilite"><code class="language-python"># User profile
+PK: &quot;USER#alice&quot;
+SK: &quot;PROFILE#&quot;
+
+# User's orders
+PK: &quot;USER#alice&quot;
+SK: &quot;ORDER#2026-02-15#12345&quot;
+
+# Order details
+PK: &quot;ORDER#12345&quot;
+SK: &quot;METADATA#&quot;
+</code></pre>
+
+<h3>Pattern 2: Time Series Data</h3>
+<p>For our router testing system, we needed to store millions of test results efficiently:</p>
+<pre class="codehilite"><code class="language-python">PK: &quot;ROUTER#12345&quot;
+SK: &quot;2026-03#TEST#001&quot;  # Year-Month prefix for TTL and queries
+
+# Use composite sort key for time-range queries
+# Enable TTL to automatically delete old data
+</code></pre>
+
+<h3>Pattern 3: Real-time Aggregation with DynamoDB Streams</h3>
+<p>Combine DynamoDB Streams with Lambda for real-time data processing:</p>
+<ol>
+<li>Write test results to DynamoDB</li>
+<li>Stream triggers Lambda function</li>
+<li>Lambda aggregates metrics and updates summary tables</li>
+<li>Push to Kafka for downstream consumers</li>
+</ol>
+<h2>Performance Optimization</h2>
+<h3>Batching Operations</h3>
+<p>Use <code>BatchGetItem</code> and <code>BatchWriteItem</code> to reduce latency:</p>
+<pre class="codehilite"><code class="language-python">import boto3
+
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('RouterTests')
+
+# Batch write up to 25 items
+with table.batch_writer() as batch:
+    for item in items:
+        batch.put_item(Item=item)
+</code></pre>
+
+<h3>Exponential Backoff</h3>
+<p>Always implement exponential backoff for throttled requests. AWS SDKs handle this automatically, but custom retry logic can be tuned:</p>
+<pre class="codehilite"><code class="language-python">import time
+import random
+
+def write_with_retry(table, item, max_retries=5):
+    for attempt in range(max_retries):
+        try:
+            return table.put_item(Item=item)
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ProvisionedThroughputExceededException':
+                if attempt == max_retries - 1:
+                    raise
+                # Exponential backoff with jitter
+                sleep_time = (2 ** attempt) + random.uniform(0, 1)
+                time.sleep(sleep_time)
+            else:
+                raise
+</code></pre>
+
+<h2>Cost Optimization</h2>
+<p>DynamoDB can get expensive if not managed carefully:</p>
+<ol>
+<li><strong>Use on-demand pricing</strong> for unpredictable workloads</li>
+<li><strong>Enable TTL</strong> to automatically delete old data</li>
+<li><strong>Archive to S3</strong> for infrequent access patterns</li>
+<li><strong>Monitor with CloudWatch</strong> to identify hot partitions</li>
+<li><strong>Use provisioned capacity</strong> with auto-scaling for predictable workloads</li>
+</ol>
+<h2>Common Pitfalls</h2>
+<h3>1. Over-relying on Scans</h3>
+<p>Scans read every item in a table - expensive and slow. Always prefer Query operations with proper keys.</p>
+<h3>2. Ignoring Item Size Limits</h3>
+<ul>
+<li>Maximum item size: 400 KB</li>
+<li>Plan for this constraint in your design</li>
+<li>Consider storing large objects in S3 and referencing them</li>
+</ul>
+<h3>3. Not Planning for Growth</h3>
+<p>Your access patterns today might not match tomorrow's needs. Build flexibility:
+- Use generic attribute names (PK, SK, GSI1PK, GSI1SK)
+- Document your access patterns
+- Monitor and iterate</p>
+<h2>Conclusion</h2>
+<p>DynamoDB is a powerful tool when used correctly. The key is understanding that it's not a relational database - it requires a different mindset. Design for your access patterns, embrace denormalization, and always think about scale from day one.</p>
+<p>After handling millions of requests per day with DynamoDB, I can confidently say: when you get the design right, it just works. And when you get it wrong, you'll know quickly. Start with your access patterns, iterate based on metrics, and don't be afraid to refactor early.</p>
+<hr />
+<p><strong>Key Takeaways:</strong>
+- Access patterns drive schema design
+- Denormalization is expected and encouraged
+- Partition key selection is critical
+- Single table design reduces complexity
+- Always plan for scale and cost</p>
+<p>Have questions about DynamoDB design? Feel free to reach out!</p>
+        </div>
+    </div>
+    
+    <footer class="post-footer">
+        <div class="container-narrow">
+            <div class="post-footer-content">
+                <p>Thanks for reading! If you found this helpful, feel free to share it or reach out on <a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a>.</p>
+            </div>
+            <div class="post-navigation">
+                <a href="../../blog/index.html" class="btn btn-outline">← Back to Blog</a>
+            </div>
+        </div>
+    </footer>
+</article>
+
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Manav Dahra</h3>
+                    <p>Backend Engineer & AI Interpretability Enthusiast</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <ul class="social-links">
+                        <li><a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a></li>
+                        <li><a href="https://manavdahra.github.io/" target="_blank">Portfolio</a></li>
+                        <li><a href="mailto:manav.dahra@gmail.com">Email</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Topics</h3>
+                    <ul class="topic-links">
+                        <li>Software Engineering</li>
+                        <li>AI Interpretability</li>
+                        <li>Distributed Systems</li>
+                        <li>Machine Learning</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Manav Dahra. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

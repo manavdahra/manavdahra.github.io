@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Building Distributed Systems: Lessons from the Trenches - Manav Dahra</title>
+    <link rel="stylesheet" href="../../static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="../../index.html">Manav Dahra</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="../../index.html" class="">Home</a></li>
+                <li><a href="../../blog/index.html" class="active">Blog</a></li>
+                <li><a href="../../about/index.html" class="">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        
+<article class="blog-post">
+    <header class="post-header">
+        <div class="container-narrow">
+            <div class="post-meta-top">
+                <span class="post-category">Software Engineering</span>
+                <span class="post-date">February 20, 2026</span>
+            </div>
+            <h1 class="post-title-large">Building Distributed Systems: Lessons from the Trenches</h1>
+            <p class="post-excerpt-large">Real-world lessons learned from building and scaling distributed systems for millions of users.</p>
+            <div class="post-meta-bottom">
+                <span class="post-read-time">10 min read</span>
+                <div class="post-tags-large">
+                    
+                    <span class="tag">distributed-systems</span>
+                    
+                    <span class="tag">microservices</span>
+                    
+                    <span class="tag">kafka</span>
+                    
+                    <span class="tag">architecture</span>
+                    
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="post-content">
+        <div class="container-narrow">
+            <h1>Building Distributed Systems: Lessons from the Trenches</h1>
+<p>Over the past decade, I've built distributed systems that serve millions of users - from payment reconciliation services processing 5,000 recurring payments per hour to warehouse management systems optimizing operations across geographies. Here are the hard-won lessons that textbooks don't teach you.</p>
+<h2>The Fundamental Truth</h2>
+<p>Distributed systems are <strong>fundamentally about managing failure</strong>. Everything else - scaling, performance, consistency - flows from accepting that things will fail and designing around it.</p>
+<p>Your network will partition. Your servers will crash. Your database will slow down. Your assumptions will be wrong.</p>
+<h2>Lesson 1: Design for Failure, Not Success</h2>
+<h3>The Fallacies of Distributed Computing</h3>
+<p>Remember these fallacies, coined by Peter Deutsch:</p>
+<ol>
+<li>The network is reliable</li>
+<li>Latency is zero</li>
+<li>Bandwidth is infinite</li>
+<li>The network is secure</li>
+<li>Topology doesn't change</li>
+<li>There is one administrator</li>
+<li>Transport cost is zero</li>
+<li>The network is homogeneous</li>
+</ol>
+<p>Every production incident I've debugged violated at least one of these assumptions.</p>
+<h3>Practical Example: Circuit Breakers</h3>
+<p>When calling external services, implement circuit breakers to prevent cascade failures:</p>
+<pre class="codehilite"><code class="language-go">type CircuitBreaker struct {
+    maxFailures  int
+    timeout      time.Duration
+    state        State
+    failures     int
+    lastAttempt  time.Time
+    mu           sync.RWMutex
+}
+
+func (cb *CircuitBreaker) Call(fn func() error) error {
+    cb.mu.Lock()
+    defer cb.mu.Unlock()
+
+    if cb.state == StateOpen {
+        if time.Since(cb.lastAttempt) &gt; cb.timeout {
+            cb.state = StateHalfOpen
+        } else {
+            return errors.New(&quot;circuit breaker is open&quot;)
+        }
+    }
+
+    err := fn()
+    cb.lastAttempt = time.Now()
+
+    if err != nil {
+        cb.failures++
+        if cb.failures &gt;= cb.maxFailures {
+            cb.state = StateOpen
+        }
+        return err
+    }
+
+    cb.failures = 0
+    cb.state = StateClosed
+    return nil
+}
+</code></pre>
+
+<p>This pattern saved us during a third-party API outage - instead of all requests timing out (30s each), we failed fast and degraded gracefully.</p>
+<h2>Lesson 2: Eventual Consistency is Your Friend</h2>
+<p>At NTUC Enterprise, we built an attendance system handling 20,000 concurrent check-ins during peak times. The secret? Embracing eventual consistency.</p>
+<h3>The Pattern: Write-Ahead Log + Async Processing</h3>
+<ol>
+<li><strong>Accept the request</strong> and write to a local WAL (Write-Ahead Log)</li>
+<li><strong>Return success</strong> immediately  </li>
+<li><strong>Process asynchronously</strong> with retries</li>
+<li><strong>Update UI</strong> via WebSockets when complete</li>
+</ol>
+<pre class="codehilite"><code class="language-go">// Accept check-in request
+func (s *AttendanceService) CheckIn(ctx context.Context, studentID string) error {
+    // Write to local WAL (fast, reliable)
+    event := CheckInEvent{
+        StudentID: studentID,
+        Timestamp: time.Now(),
+        Status:    &quot;pending&quot;,
+    }
+
+    if err := s.wal.Write(event); err != nil {
+        return err
+    }
+
+    // Return immediately
+    // Async processor picks it up
+    return nil
+}
+
+// Async processor
+func (s *AttendanceService) ProcessEvents() {
+    for event := range s.wal.Read() {
+        if err := s.processWithRetry(event); err != nil {
+            // Move to DLQ for manual review
+            s.dlq.Add(event, err)
+        }
+    }
+}
+</code></pre>
+
+<h3>Result</h3>
+<ul>
+<li><strong>99.9% success rate</strong> even during peak load</li>
+<li><strong>Sub-100ms response times</strong></li>
+<li><strong>Zero data loss</strong> (WAL persists everything)</li>
+</ul>
+<h2>Lesson 3: Observability is Not Optional</h2>
+<p>You can't fix what you can't see. At Cisco ThousandEyes, we instrumented everything:</p>
+<h3>The Three Pillars</h3>
+<p><strong>1. Metrics</strong> - What's happening right now?</p>
+<pre class="codehilite"><code class="language-go">// Prometheus metrics
+requestDuration := prometheus.NewHistogramVec(
+    prometheus.HistogramOpts{
+        Name: &quot;http_request_duration_seconds&quot;,
+        Buckets: []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10},
+    },
+    []string{&quot;method&quot;, &quot;endpoint&quot;, &quot;status&quot;},
+)
+
+// Instrument every request
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+    start := time.Now()
+    defer func() {
+        duration := time.Since(start).Seconds()
+        requestDuration.WithLabelValues(
+            r.Method,
+            r.URL.Path,
+            strconv.Itoa(w.StatusCode),
+        ).Observe(duration)
+    }()
+
+    h.next.ServeHTTP(w, r)
+}
+</code></pre>
+
+<p><strong>2. Logs</strong> - What happened?</p>
+<pre class="codehilite"><code class="language-go">// Structured logging with context
+logger.Info(&quot;processing_test_request&quot;,
+    zap.String(&quot;router_id&quot;, routerID),
+    zap.String(&quot;test_type&quot;, testType),
+    zap.String(&quot;trace_id&quot;, traceID),
+    zap.Duration(&quot;duration&quot;, elapsed),
+)
+</code></pre>
+
+<p><strong>3. Traces</strong> - Where did time go?</p>
+<pre class="codehilite"><code class="language-go">// Distributed tracing
+ctx, span := tracer.Start(ctx, &quot;process_test&quot;)
+defer span.End()
+
+span.SetAttributes(
+    attribute.String(&quot;router.id&quot;, routerID),
+    attribute.String(&quot;test.type&quot;, testType),
+)
+
+// Spans propagate across service boundaries
+</code></pre>
+
+<h3>The 25,000 Metric Points We Captured Daily</h3>
+<p>At NTUC, capturing 25k metrics daily meant we could:
+- Detect anomalies in &lt;5 minutes
+- Debug issues with full context
+- Capacity plan with confidence
+- Prove SLA compliance</p>
+<h2>Lesson 4: Data Consistency Patterns</h2>
+<h3>Pattern 1: Saga Pattern (Distributed Transactions)</h3>
+<p>When you need to coordinate across multiple services, use the Saga pattern:</p>
+<pre class="codehilite"><code class="language-go">// Saga for order processing
+type OrderSaga struct {
+    steps []SagaStep
+}
+
+type SagaStep struct {
+    Execute    func(ctx context.Context) error
+    Compensate func(ctx context.Context) error
+}
+
+func (s *OrderSaga) Execute(ctx context.Context) error {
+    executed := []SagaStep{}
+
+    for _, step := range s.steps {
+        if err := step.Execute(ctx); err != nil {
+            // Compensate in reverse order
+            for i := len(executed) - 1; i &gt;= 0; i-- {
+                executed[i].Compensate(ctx)
+            }
+            return err
+        }
+        executed = append(executed, step)
+    }
+
+    return nil
+}
+
+// Usage
+saga := &amp;OrderSaga{
+    steps: []SagaStep{
+        {
+            Execute:    reserveInventory,
+            Compensate: releaseInventory,
+        },
+        {
+            Execute:    chargePayment,
+            Compensate: refundPayment,
+        },
+        {
+            Execute:    scheduleShipment,
+            Compensate: cancelShipment,
+        },
+    },
+}
+</code></pre>
+
+<h3>Pattern 2: Event Sourcing</h3>
+<p>Store <strong>events</strong> instead of current state. Rebuild state by replaying events.</p>
+<p>At HelloFresh, we used this for recipe and SKU management:</p>
+<pre class="codehilite"><code class="language-go">// Events
+type RecipeCreated struct {
+    RecipeID   string
+    Name       string
+    Timestamp  time.Time
+}
+
+type IngredientAdded struct {
+    RecipeID   string
+    Ingredient Ingredient
+    Timestamp  time.Time
+}
+
+// Aggregate
+type Recipe struct {
+    ID          string
+    Name        string
+    Ingredients []Ingredient
+}
+
+func (r *Recipe) Apply(event Event) {
+    switch e := event.(type) {
+    case RecipeCreated:
+        r.ID = e.RecipeID
+        r.Name = e.Name
+    case IngredientAdded:
+        r.Ingredients = append(r.Ingredients, e.Ingredient)
+    }
+}
+</code></pre>
+
+<p><strong>Benefits:</strong>
+- Complete audit trail
+- Time travel (rebuild state at any point)
+- Easy to add new projections
+- Natural fit for event-driven architecture</p>
+<h2>Lesson 5: Backpressure and Rate Limiting</h2>
+<p>When I joined Airtel Digital, we had a problem: traffic spikes would overwhelm downstream services. The solution? Layers of backpressure.</p>
+<h3>Token Bucket Rate Limiter</h3>
+<pre class="codehilite"><code class="language-go">type TokenBucket struct {
+    capacity   int
+    tokens     int
+    refillRate time.Duration
+    mu         sync.Mutex
+}
+
+func (tb *TokenBucket) Allow() bool {
+    tb.mu.Lock()
+    defer tb.mu.Unlock()
+
+    if tb.tokens &gt; 0 {
+        tb.tokens--
+        return true
+    }
+    return false
+}
+
+func (tb *TokenBucket) refill() {
+    ticker := time.NewTicker(tb.refillRate)
+    for range ticker.C {
+        tb.mu.Lock()
+        if tb.tokens &lt; tb.capacity {
+            tb.tokens++
+        }
+        tb.mu.Unlock()
+    }
+}
+</code></pre>
+
+<h3>Load Shedding</h3>
+<pre class="codehilite"><code class="language-go">func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+    // Shed load if queue is too full
+    if h.queue.Len() &gt; h.maxQueueSize {
+        http.Error(w, &quot;Service Unavailable&quot;, http.StatusServiceUnavailable)
+        return
+    }
+
+    // Or shed based on request priority
+    priority := r.Header.Get(&quot;X-Request-Priority&quot;)
+    if priority == &quot;low&quot; &amp;&amp; h.isOverloaded() {
+        http.Error(w, &quot;Service Unavailable&quot;, http.StatusServiceUnavailable)
+        return
+    }
+
+    h.next.ServeHTTP(w, r)
+}
+</code></pre>
+
+<h2>Lesson 6: The Importance of Idempotency</h2>
+<p><strong>Every operation in a distributed system should be idempotent.</strong></p>
+<p>At HelloFresh, payment processing had to be idempotent - customers shouldn't be charged twice if a request is retried.</p>
+<pre class="codehilite"><code class="language-go">func (s *PaymentService) ProcessPayment(ctx context.Context, req PaymentRequest) error {
+    idempotencyKey := req.IdempotencyKey
+
+    // Check if already processed
+    if result, found := s.cache.Get(idempotencyKey); found {
+        return result.Error
+    }
+
+    // Process payment
+    result := s.chargeCard(ctx, req)
+
+    // Store result with TTL
+    s.cache.Set(idempotencyKey, result, 24*time.Hour)
+
+    return result.Error
+}
+</code></pre>
+
+<h2>Lesson 7: Cache Carefully</h2>
+<p>Caching is a double-edged sword. At NTUC, we used Redis master-slave for caching, and learned:</p>
+<h3>When to Cache</h3>
+<ul>
+<li>Expensive computations</li>
+<li>High-read, low-write data</li>
+<li>Acceptable slight staleness</li>
+</ul>
+<h3>When NOT to Cache</h3>
+<ul>
+<li>Rapidly changing data</li>
+<li>Data requiring strong consistency</li>
+<li>Small datasets (overhead &gt; benefit)</li>
+</ul>
+<h3>Cache Invalidation Strategy</h3>
+<pre class="codehilite"><code class="language-go">// Write-through cache
+func (s *Service) UpdateUser(ctx context.Context, user User) error {
+    // Update database
+    if err := s.db.Update(user); err != nil {
+        return err
+    }
+
+    // Update cache
+    if err := s.cache.Set(user.ID, user); err != nil {
+        // Log but don't fail - cache miss is ok
+        log.Error(&quot;cache_update_failed&quot;, zap.Error(err))
+    }
+
+    return nil
+}
+
+// Cache-aside pattern
+func (s *Service) GetUser(ctx context.Context, userID string) (*User, error) {
+    // Try cache first
+    if user, found := s.cache.Get(userID); found {
+        return user, nil
+    }
+
+    // Cache miss - get from DB
+    user, err := s.db.Get(userID)
+    if err != nil {
+        return nil, err
+    }
+
+    // Populate cache
+    s.cache.Set(userID, user)
+
+    return user, nil
+}
+</code></pre>
+
+<h2>Conclusion</h2>
+<p>Building distributed systems is hard. There's no silver bullet, no perfect architecture. What works at 1,000 RPS fails at 100,000 RPS.</p>
+<p>But these patterns have served me well across industries and scales:</p>
+<ol>
+<li><strong>Design for failure</strong></li>
+<li><strong>Embrace eventual consistency</strong></li>
+<li><strong>Observe everything</strong></li>
+<li><strong>Plan for data consistency</strong></li>
+<li><strong>Implement backpressure</strong></li>
+<li><strong>Make operations idempotent</strong></li>
+<li><strong>Cache thoughtfully</strong></li>
+</ol>
+<p>The real lesson? <strong>Start simple, measure everything, and evolve based on real data.</strong> Don't over-engineer for scale you don't have. But do design for the failure modes you'll definitely encounter.</p>
+<hr />
+<p><strong>Recommended Reading:</strong>
+- <em>Designing Data-Intensive Applications</em> by Martin Kleppmann
+- <em>Site Reliability Engineering</em> by Google
+- <em>Release It!</em> by Michael Nygard</p>
+<p>Questions? War stories to share? Let's connect!</p>
+        </div>
+    </div>
+    
+    <footer class="post-footer">
+        <div class="container-narrow">
+            <div class="post-footer-content">
+                <p>Thanks for reading! If you found this helpful, feel free to share it or reach out on <a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a>.</p>
+            </div>
+            <div class="post-navigation">
+                <a href="../../blog/index.html" class="btn btn-outline">← Back to Blog</a>
+            </div>
+        </div>
+    </footer>
+</article>
+
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Manav Dahra</h3>
+                    <p>Backend Engineer & AI Interpretability Enthusiast</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <ul class="social-links">
+                        <li><a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a></li>
+                        <li><a href="https://manavdahra.github.io/" target="_blank">Portfolio</a></li>
+                        <li><a href="mailto:manav.dahra@gmail.com">Email</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Topics</h3>
+                    <ul class="topic-links">
+                        <li>Software Engineering</li>
+                        <li>AI Interpretability</li>
+                        <li>Distributed Systems</li>
+                        <li>Machine Learning</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Manav Dahra. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

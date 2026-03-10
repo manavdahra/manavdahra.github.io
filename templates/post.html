@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }} - Manav Dahra{% endblock %}
+
+{% block content %}
+<article class="blog-post">
+    <header class="post-header">
+        <div class="container-narrow">
+            <div class="post-meta-top">
+                <span class="post-category">{{ post.category }}</span>
+                <span class="post-date">{{ post.date|format_date }}</span>
+            </div>
+            <h1 class="post-title-large">{{ post.title }}</h1>
+            <p class="post-excerpt-large">{{ post.excerpt }}</p>
+            <div class="post-meta-bottom">
+                <span class="post-read-time">{{ post.read_time }}</span>
+                <div class="post-tags-large">
+                    {% for tag in post.tags %}
+                    <span class="tag">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="post-content">
+        <div class="container-narrow">
+            {{ post.content|safe }}
+        </div>
+    </div>
+    
+    <footer class="post-footer">
+        <div class="container-narrow">
+            <div class="post-footer-content">
+                <p>Thanks for reading! If you found this helpful, feel free to share it or reach out on <a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a>.</p>
+            </div>
+            <div class="post-navigation">
+                <a href="/blog" class="btn btn-outline">← Back to Blog</a>
+            </div>
+        </div>
+    </footer>
+</article>
+{% endblock %}

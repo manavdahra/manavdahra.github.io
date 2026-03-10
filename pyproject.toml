@@ -1,0 +1,13 @@
+[project]
+name = "dev-blog"
+version = "0.1.0"
+description = "A blogging website for sharing learnings on Software Engineering and AI Interpretability"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.0.0",
+    "frozen-flask>=1.0.2",
+    "markdown>=3.5.0",
+    "pypdf>=6.8.0",
+]
+

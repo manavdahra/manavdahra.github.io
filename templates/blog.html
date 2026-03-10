@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Blog - Manav Dahra{% endblock %}
+
+{% block content %}
+<section class="blog-hero">
+    <div class="container">
+        <h1 class="page-title">Blog</h1>
+        <p class="page-subtitle">Insights on Software Engineering and AI Interpretability</p>
+    </div>
+</section>
+
+<section class="blog-posts">
+    <div class="container">
+        <div class="blog-grid">
+            {% for post in posts %}
+            <article class="blog-card">
+                <div class="blog-card-header">
+                    <span class="post-category">{{ post.category }}</span>
+                    <span class="post-date">{{ post.date|format_date }}</span>
+                </div>
+                <h2 class="blog-card-title">
+                    <a href="/blog/{{ post.slug }}">{{ post.title }}</a>
+                </h2>
+                <p class="blog-card-excerpt">{{ post.excerpt }}</p>
+                <div class="blog-card-meta">
+                    <span class="post-read-time">{{ post.read_time }}</span>
+                </div>
+                <div class="blog-card-tags">
+                    {% for tag in post.tags %}
+                    <span class="tag">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                <a href="/blog/{{ post.slug }}" class="read-more">Read more →</a>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

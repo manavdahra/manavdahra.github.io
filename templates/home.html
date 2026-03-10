@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+    <div class="container">
+        <h1 class="hero-title">Hi, I'm Manav Dahra</h1>
+        <p class="hero-subtitle">Backend Engineer & AI Interpretability Enthusiast</p>
+        <p class="hero-description">
+            Exploring the depths of software engineering and AI safety through mechanistic interpretability. 
+            Sharing insights from a decade of building distributed systems and recent deep dives into understanding how AI models really work.
+        </p>
+        <div class="hero-cta">
+            <a href="/blog" class="btn btn-primary">Read My Blog</a>
+            <a href="/about" class="btn btn-secondary">About Me</a>
+        </div>
+    </div>
+</section>
+
+<section class="latest-posts">
+    <div class="container">
+        <h2 class="section-title">Latest Posts</h2>
+        <div class="posts-grid">
+            {% for post in posts[:3] %}
+            <article class="post-card">
+                <div class="post-category">{{ post.category }}</div>
+                <h3 class="post-title">
+                    <a href="/blog/{{ post.slug }}">{{ post.title }}</a>
+                </h3>
+                <p class="post-excerpt">{{ post.excerpt }}</p>
+                <div class="post-meta">
+                    <span class="post-date">{{ post.date|format_date }}</span>
+                    <span class="post-read-time">{{ post.read_time }}</span>
+                </div>
+                <div class="post-tags">
+                    {% for tag in post.tags[:3] %}
+                    <span class="tag">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        <div class="view-all">
+            <a href="/blog" class="btn btn-outline">View All Posts →</a>
+        </div>
+    </div>
+</section>
+
+<section class="focus-areas">
+    <div class="container">
+        <h2 class="section-title">What I Write About</h2>
+        <div class="areas-grid">
+            <div class="area-card">
+                <div class="area-icon">🏗️</div>
+                <h3>Software Engineering</h3>
+                <p>Distributed systems, microservices architecture, databases, and building scalable applications that serve millions of users.</p>
+            </div>
+            <div class="area-card">
+                <div class="area-icon">🧠</div>
+                <h3>AI Interpretability</h3>
+                <p>Mechanistic interpretability, transformer circuits, AI safety research, and understanding what happens inside neural networks.</p>
+            </div>
+            <div class="area-card">
+                <div class="area-icon">⚡</div>
+                <h3>System Design</h3>
+                <p>Real-world architectural patterns, performance optimization, and lessons learned from building production systems.</p>
+            </div>
+            <div class="area-card">
+                <div class="area-icon">🔬</div>
+                <h3>Deep Learning</h3>
+                <p>PyTorch, transformers, reinforcement learning, and practical applications of machine learning in production.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
