@@ -13,9 +13,8 @@ app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
 # Blog posts data structure
 BLOG_POSTS = [
     {
-        "id": 0,
-        "title": "Learning the AI/ML",
-        "slug": "aimlj-1",
+        'title': 'Machine learning - Part I',
+        'slug': 'aimlj-1',
         'date': datetime(2026, 6, 24),
         'category': 'AI/ML',
         'tags': ['ai', 'ml', 'general advice'],
@@ -23,7 +22,6 @@ BLOG_POSTS = [
         'read_time': '15 min read',
     },
     {
-        'id': 1,
         'title': '3D Snake Game: WebGL Physics Demo',
         'slug': 'snake-game',
         'date': datetime(2026, 3, 10),
@@ -34,7 +32,6 @@ BLOG_POSTS = [
         'type': 'interactive'
     },
     {
-        'id': 2,
         'title': 'Understanding DynamoDB: Design Patterns for Scale',
         'slug': 'understanding-dynamodb-design-patterns',
         'date': datetime(2026, 3, 5),
@@ -44,17 +41,6 @@ BLOG_POSTS = [
         'read_time': '8 min read'
     },
     {
-        'id': 3,
-        'title': 'Mechanistic Interpretability: A Practical Introduction',
-        'slug': 'mechanistic-interpretability-intro',
-        'date': datetime(2026, 3, 1),
-        'category': 'AI Interpretability',
-        'tags': ['interpretability', 'transformers', 'ai-safety', 'pytorch'],
-        'excerpt': 'An introduction to mechanistic interpretability and why understanding model internals matters for AI safety.',
-        'read_time': '12 min read'
-    },
-    {
-        'id': 4,
         'title': 'Building Distributed Systems: Lessons from the Trenches',
         'slug': 'distributed-systems-lessons',
         'date': datetime(2026, 2, 20),
@@ -63,16 +49,6 @@ BLOG_POSTS = [
         'excerpt': 'Real-world lessons learned from building and scaling distributed systems for millions of users.',
         'read_time': '10 min read'
     },
-    {
-        'id': 5,
-        'title': 'Transformer Circuits: Understanding Attention Mechanisms',
-        'slug': 'transformer-circuits-attention',
-        'date': datetime(2026, 2, 15),
-        'category': 'AI Interpretability',
-        'tags': ['transformers', 'attention', 'interpretability', 'neural-networks'],
-        'excerpt': 'Breaking down how attention mechanisms work in transformers using TransformerLens and circuit analysis.',
-        'read_time': '15 min read'
-    }
 ]
 
 @app.route('/')
