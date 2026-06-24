@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning the AI/ML - Manav Dahra</title>
+    <link rel="stylesheet" href="../../static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="../../index.html">Manav Dahra</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="../../index.html" class="">Home</a></li>
+                <li><a href="../../blog/index.html" class="active">Blog</a></li>
+                <li><a href="../../about/index.html" class="">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        
+<article class="blog-post">
+    <header class="post-header">
+        <div class="container-narrow">
+            <div class="post-meta-top">
+                <span class="post-category">AI/ML</span>
+                <span class="post-date">June 24, 2026</span>
+            </div>
+            <h1 class="post-title-large">Learning the AI/ML</h1>
+            <p class="post-excerpt-large">My journey of learning AI/ML</p>
+            <div class="post-meta-bottom">
+                <span class="post-read-time">15 min read</span>
+                <div class="post-tags-large">
+                    
+                    <span class="tag">ai</span>
+                    
+                    <span class="tag">ml</span>
+                    
+                    <span class="tag">pytorch</span>
+                    
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="post-content">
+        <div class="container-narrow">
+            <h1>My Journal on AI/ML</h1>
+<p>This is my journal on learnings I have had with AI/ML so far.</p>
+<h3>The fad</h3>
+<p>Like many, I got deeply curious about Machine learning back in the late 2010s. The field of ML was newly commercialized and sat at the fringes of Software Engineering ecosystem. Actually, with launch of AlexNet in early 2010s, it had already heated up I was just not aware of it. But I digress... </p>
+<p>In 2018, I got introduced to Deep learning by Andrew Ng's online courses. The excitement took over me and I jumped straight into the course. I went through supervised/un-supervised learning, SGD, linear/logistic regression, loss functions, backpropagation, etc etc on a very high level and it was great introduction for beginners like me. But that is all it was -- "an introduction". I now see that course was designed to be a PR campaign for attracting students into Stanford's AI/ML program. Don't get me wrong, there is nothing wrong with a great introduction and helping prospective students find a great course they like. But in 2026, the introductory course shouldn't be the place where most of us should stop and say, we learnt ML. It's nowhere close.</p>
+<h3>The doubt</h3>
+<p>Once I was done with the course, I tried my hands at Kaggle and tried building some models for problems like titanic survivors, housing prices and identifying hand-written digits. I had a few successes here and there but I wasn't really happy with the outcome. I didn't know what I was really doing apart from following some steps written in a cookbook/recipe and this software engineering mindset -- "get your hands dirty, build things to learn fast" was restricting my growth. I now think that this approach is not ideal for learning ML. </p>
+<p>Everytime, I'd end up building some model I'd be doing something like -</p>
+<ol>
+<li>Collect data</li>
+<li>Pre-process it - one-hot encode/shuffle/split/normalise</li>
+<li>Code up the model </li>
+<li>Train the model using the loss function           </li>
+<li>Test it against test split </li>
+<li>Plot loss curves and celebrate :party:</li>
+</ol>
+<p>Why ? because that is what the cookbook says and more or less it is correct. </p>
+<p>But by the end of it I was often left with more questions than answers.</p>
+<ul>
+<li>"What happens if I change the train-test split ? At what limit of this ratio does my model break ? And why ?"</li>
+<li>"Do I really need normalisation ? How do I even see the difference ?"</li>
+<li>"Why shuffle ?"</li>
+<li>"The loss function looks like we pulled something out of thin air. What is CE loss ? Why wouldn't MSE work ? Why is entropy here ?"</li>
+<li>"What is all this fuss about backpropagation ? Looks like a simple chain rule to me."</li>
+<li>"Weird... I though Neural nets and SGD train well and achieve good accuracy, the training loss is not decreasing for me"</li>
+</ul>
+<p>For most questions, when I'd try to dig further, it would lead me down in a Wikipedia rabbit hole with complex math and more hyperlinks that I didn't understand and spend hours learning un-related things eventually to give up.</p>
+<blockquote>
+<p>In short, I didn't know how to debug a ML system while lacking the knowledge of first principles.</p>
+</blockquote>
+<h3>First principles first</h3>
+<p>I had grossly underestimated the nuance, richness and difficulty of ML. Unlike software engineering where epxplicit rules are written to guide the behaviour of the system and build abstractions to isolate and hide this complexity, ML doesn't work that way.</p>
+<p>In past if I wanted to learn more about a complex system like databases or HTTP servers, then I'd just write them by hand to reinforce a better understanding. Whereas, in ML, its only half of the story. I could implement SGD algorithm from scratch, build a model layer by layer, gather data, train it to achieve high accuracy and still not understand why my model fails to achieve high accuracy. (Clearly I was unaware of concepts like model selection, hyper-parameter tuning, regularization, bias-variance tradeoff)</p>
+<blockquote>
+<p>To understand why ML systems fail in obscure ways, you must know more than the steps in a cookbook.</p>
+</blockquote>
+<p>There are no shortcuts to this. The internet is filled with too many online courses and ML gurus who say otherwise, but I strongly disagree with those opinions as it never worked out for me and this is what motivates me to write a series of blog post about it. </p>
+<h3>What now ?</h3>
+<p>I have been taking my sweet time to learn the necessary theory ML and in the process of writing these detailed blog posts, I expect to not only guide others in the right direction but also reinforce my own understanding.</p>
+<p>In next few blog posts, I'll write more in detail and unlike other materials, I won't shy away from writing Math. I'll also drop in some links to free ebooks, research papers and my experiments or replications. Hopefully you are as excited as I am!</p>
+<p>Thank you for reading!</p>
+        </div>
+    </div>
+    
+    <footer class="post-footer">
+        <div class="container-narrow">
+            <div class="post-footer-content">
+                <p>Thanks for reading! If you found this helpful, feel free to share it or reach out on <a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a>.</p>
+            </div>
+            <div class="post-navigation">
+                <a href="../../blog/index.html" class="btn btn-outline">← Back to Blog</a>
+            </div>
+        </div>
+    </footer>
+</article>
+
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Manav Dahra</h3>
+                    <p>Backend Engineer & AI Interpretability Enthusiast</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <ul class="social-links">
+                        <li><a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a></li>
+                        <li><a href="https://manavdahra.github.io/" target="_blank">Portfolio</a></li>
+                        <li><a href="mailto:manav.dahra@gmail.com">Email</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Topics</h3>
+                    <ul class="topic-links">
+                        <li>Software Engineering</li>
+                        <li>AI Interpretability</li>
+                        <li>Distributed Systems</li>
+                        <li>Machine Learning</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Manav Dahra. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

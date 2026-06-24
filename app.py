@@ -13,7 +13,17 @@ app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
 # Blog posts data structure
 BLOG_POSTS = [
     {
-        'id': 0,
+        "id": 0,
+        "title": "Learning the AI/ML",
+        "slug": "aimlj-1",
+        'date': datetime(2026, 6, 24),
+        'category': 'AI/ML',
+        'tags': ['ai', 'ml', 'general advice'],
+        'excerpt': 'My journey of learning AI/ML',
+        'read_time': '15 min read',
+    },
+    {
+        'id': 1,
         'title': '3D Snake Game: WebGL Physics Demo',
         'slug': 'snake-game',
         'date': datetime(2026, 3, 10),
@@ -24,7 +34,7 @@ BLOG_POSTS = [
         'type': 'interactive'
     },
     {
-        'id': 1,
+        'id': 2,
         'title': 'Understanding DynamoDB: Design Patterns for Scale',
         'slug': 'understanding-dynamodb-design-patterns',
         'date': datetime(2026, 3, 5),
@@ -34,7 +44,7 @@ BLOG_POSTS = [
         'read_time': '8 min read'
     },
     {
-        'id': 2,
+        'id': 3,
         'title': 'Mechanistic Interpretability: A Practical Introduction',
         'slug': 'mechanistic-interpretability-intro',
         'date': datetime(2026, 3, 1),
@@ -44,7 +54,7 @@ BLOG_POSTS = [
         'read_time': '12 min read'
     },
     {
-        'id': 3,
+        'id': 4,
         'title': 'Building Distributed Systems: Lessons from the Trenches',
         'slug': 'distributed-systems-lessons',
         'date': datetime(2026, 2, 20),
@@ -54,7 +64,7 @@ BLOG_POSTS = [
         'read_time': '10 min read'
     },
     {
-        'id': 4,
+        'id': 5,
         'title': 'Transformer Circuits: Understanding Attention Mechanisms',
         'slug': 'transformer-circuits-attention',
         'date': datetime(2026, 2, 15),
