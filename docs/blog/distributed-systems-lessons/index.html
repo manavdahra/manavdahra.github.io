@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Building Distributed Systems: Lessons from the Trenches - Manav Dahra</title>
     <link rel="stylesheet" href="../../static/css/style.css">
+    <link rel="stylesheet" href="../../static/css/pygments.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 </head>
 <body>
     <nav class="navbar">
@@ -74,43 +76,43 @@
 <p>Every production incident I've debugged violated at least one of these assumptions.</p>
 <h3>Practical Example: Circuit Breakers</h3>
 <p>When calling external services, implement circuit breakers to prevent cascade failures:</p>
-<pre class="codehilite"><code class="language-go">type CircuitBreaker struct {
-    maxFailures  int
-    timeout      time.Duration
-    state        State
-    failures     int
-    lastAttempt  time.Time
-    mu           sync.RWMutex
-}
+<div class="codehilite"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">CircuitBreaker</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">maxFailures</span><span class="w">  </span><span class="kt">int</span>
+<span class="w">    </span><span class="nx">timeout</span><span class="w">      </span><span class="nx">time</span><span class="p">.</span><span class="nx">Duration</span>
+<span class="w">    </span><span class="nx">state</span><span class="w">        </span><span class="nx">State</span>
+<span class="w">    </span><span class="nx">failures</span><span class="w">     </span><span class="kt">int</span>
+<span class="w">    </span><span class="nx">lastAttempt</span><span class="w">  </span><span class="nx">time</span><span class="p">.</span><span class="nx">Time</span>
+<span class="w">    </span><span class="nx">mu</span><span class="w">           </span><span class="nx">sync</span><span class="p">.</span><span class="nx">RWMutex</span>
+<span class="p">}</span>
 
-func (cb *CircuitBreaker) Call(fn func() error) error {
-    cb.mu.Lock()
-    defer cb.mu.Unlock()
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">cb</span><span class="w"> </span><span class="o">*</span><span class="nx">CircuitBreaker</span><span class="p">)</span><span class="w"> </span><span class="nx">Call</span><span class="p">(</span><span class="nx">fn</span><span class="w"> </span><span class="kd">func</span><span class="p">()</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">cb</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nx">Lock</span><span class="p">()</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">cb</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nx">Unlock</span><span class="p">()</span>
 
-    if cb.state == StateOpen {
-        if time.Since(cb.lastAttempt) &gt; cb.timeout {
-            cb.state = StateHalfOpen
-        } else {
-            return errors.New(&quot;circuit breaker is open&quot;)
-        }
-    }
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">cb</span><span class="p">.</span><span class="nx">state</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nx">StateOpen</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Since</span><span class="p">(</span><span class="nx">cb</span><span class="p">.</span><span class="nx">lastAttempt</span><span class="p">)</span><span class="w"> </span><span class="p">&gt;</span><span class="w"> </span><span class="nx">cb</span><span class="p">.</span><span class="nx">timeout</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">cb</span><span class="p">.</span><span class="nx">state</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">StateHalfOpen</span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="nx">errors</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">&quot;circuit breaker is open&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
 
-    err := fn()
-    cb.lastAttempt = time.Now()
+<span class="w">    </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">fn</span><span class="p">()</span>
+<span class="w">    </span><span class="nx">cb</span><span class="p">.</span><span class="nx">lastAttempt</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Now</span><span class="p">()</span>
 
-    if err != nil {
-        cb.failures++
-        if cb.failures &gt;= cb.maxFailures {
-            cb.state = StateOpen
-        }
-        return err
-    }
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">cb</span><span class="p">.</span><span class="nx">failures</span><span class="o">++</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">cb</span><span class="p">.</span><span class="nx">failures</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="nx">cb</span><span class="p">.</span><span class="nx">maxFailures</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">cb</span><span class="p">.</span><span class="nx">state</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">StateOpen</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+<span class="w">    </span><span class="p">}</span>
 
-    cb.failures = 0
-    cb.state = StateClosed
-    return nil
-}
-</code></pre>
+<span class="w">    </span><span class="nx">cb</span><span class="p">.</span><span class="nx">failures</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">    </span><span class="nx">cb</span><span class="p">.</span><span class="nx">state</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">StateClosed</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <p>This pattern saved us during a third-party API outage - instead of all requests timing out (30s each), we failed fast and degraded gracefully.</p>
 <h2>Lesson 2: Eventual Consistency is Your Friend</h2>
@@ -122,34 +124,34 @@ func (cb *CircuitBreaker) Call(fn func() error) error {
 <li><strong>Process asynchronously</strong> with retries</li>
 <li><strong>Update UI</strong> via WebSockets when complete</li>
 </ol>
-<pre class="codehilite"><code class="language-go">// Accept check-in request
-func (s *AttendanceService) CheckIn(ctx context.Context, studentID string) error {
-    // Write to local WAL (fast, reliable)
-    event := CheckInEvent{
-        StudentID: studentID,
-        Timestamp: time.Now(),
-        Status:    &quot;pending&quot;,
-    }
+<div class="codehilite"><pre><span></span><code><span class="c1">// Accept check-in request</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><span class="nx">AttendanceService</span><span class="p">)</span><span class="w"> </span><span class="nx">CheckIn</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">studentID</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Write to local WAL (fast, reliable)</span>
+<span class="w">    </span><span class="nx">event</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">CheckInEvent</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">StudentID</span><span class="p">:</span><span class="w"> </span><span class="nx">studentID</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Timestamp</span><span class="p">:</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Now</span><span class="p">(),</span>
+<span class="w">        </span><span class="nx">Status</span><span class="p">:</span><span class="w">    </span><span class="s">&quot;pending&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">}</span>
 
-    if err := s.wal.Write(event); err != nil {
-        return err
-    }
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">wal</span><span class="p">.</span><span class="nx">Write</span><span class="p">(</span><span class="nx">event</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+<span class="w">    </span><span class="p">}</span>
 
-    // Return immediately
-    // Async processor picks it up
-    return nil
-}
+<span class="w">    </span><span class="c1">// Return immediately</span>
+<span class="w">    </span><span class="c1">// Async processor picks it up</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span>
+<span class="p">}</span>
 
-// Async processor
-func (s *AttendanceService) ProcessEvents() {
-    for event := range s.wal.Read() {
-        if err := s.processWithRetry(event); err != nil {
-            // Move to DLQ for manual review
-            s.dlq.Add(event, err)
-        }
-    }
-}
-</code></pre>
+<span class="c1">// Async processor</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><span class="nx">AttendanceService</span><span class="p">)</span><span class="w"> </span><span class="nx">ProcessEvents</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="nx">event</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="k">range</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">wal</span><span class="p">.</span><span class="nx">Read</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">processWithRetry</span><span class="p">(</span><span class="nx">event</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Move to DLQ for manual review</span>
+<span class="w">            </span><span class="nx">s</span><span class="p">.</span><span class="nx">dlq</span><span class="p">.</span><span class="nx">Add</span><span class="p">(</span><span class="nx">event</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <h3>Result</h3>
 <ul>
@@ -161,53 +163,53 @@ func (s *AttendanceService) ProcessEvents() {
 <p>You can't fix what you can't see. At Cisco ThousandEyes, we instrumented everything:</p>
 <h3>The Three Pillars</h3>
 <p><strong>1. Metrics</strong> - What's happening right now?</p>
-<pre class="codehilite"><code class="language-go">// Prometheus metrics
-requestDuration := prometheus.NewHistogramVec(
-    prometheus.HistogramOpts{
-        Name: &quot;http_request_duration_seconds&quot;,
-        Buckets: []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10},
-    },
-    []string{&quot;method&quot;, &quot;endpoint&quot;, &quot;status&quot;},
-)
+<div class="codehilite"><pre><span></span><code><span class="c1">// Prometheus metrics</span>
+<span class="nx">requestDuration</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">prometheus</span><span class="p">.</span><span class="nx">NewHistogramVec</span><span class="p">(</span>
+<span class="w">    </span><span class="nx">prometheus</span><span class="p">.</span><span class="nx">HistogramOpts</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;http_request_duration_seconds&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Buckets</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="kt">float64</span><span class="p">{</span><span class="mf">.005</span><span class="p">,</span><span class="w"> </span><span class="mf">.01</span><span class="p">,</span><span class="w"> </span><span class="mf">.025</span><span class="p">,</span><span class="w"> </span><span class="mf">.05</span><span class="p">,</span><span class="w"> </span><span class="mf">.1</span><span class="p">,</span><span class="w"> </span><span class="mf">.25</span><span class="p">,</span><span class="w"> </span><span class="mf">.5</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mf">2.5</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">},</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&quot;method&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;endpoint&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;status&quot;</span><span class="p">},</span>
+<span class="p">)</span>
 
-// Instrument every request
-func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-    start := time.Now()
-    defer func() {
-        duration := time.Since(start).Seconds()
-        requestDuration.WithLabelValues(
-            r.Method,
-            r.URL.Path,
-            strconv.Itoa(w.StatusCode),
-        ).Observe(duration)
-    }()
+<span class="c1">// Instrument every request</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">h</span><span class="w"> </span><span class="o">*</span><span class="nx">Handler</span><span class="p">)</span><span class="w"> </span><span class="nx">ServeHTTP</span><span class="p">(</span><span class="nx">w</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="w"> </span><span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">start</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Now</span><span class="p">()</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="kd">func</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">duration</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Since</span><span class="p">(</span><span class="nx">start</span><span class="p">).</span><span class="nx">Seconds</span><span class="p">()</span>
+<span class="w">        </span><span class="nx">requestDuration</span><span class="p">.</span><span class="nx">WithLabelValues</span><span class="p">(</span>
+<span class="w">            </span><span class="nx">r</span><span class="p">.</span><span class="nx">Method</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">r</span><span class="p">.</span><span class="nx">URL</span><span class="p">.</span><span class="nx">Path</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">strconv</span><span class="p">.</span><span class="nx">Itoa</span><span class="p">(</span><span class="nx">w</span><span class="p">.</span><span class="nx">StatusCode</span><span class="p">),</span>
+<span class="w">        </span><span class="p">).</span><span class="nx">Observe</span><span class="p">(</span><span class="nx">duration</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}()</span>
 
-    h.next.ServeHTTP(w, r)
-}
-</code></pre>
+<span class="w">    </span><span class="nx">h</span><span class="p">.</span><span class="nx">next</span><span class="p">.</span><span class="nx">ServeHTTP</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <p><strong>2. Logs</strong> - What happened?</p>
-<pre class="codehilite"><code class="language-go">// Structured logging with context
-logger.Info(&quot;processing_test_request&quot;,
-    zap.String(&quot;router_id&quot;, routerID),
-    zap.String(&quot;test_type&quot;, testType),
-    zap.String(&quot;trace_id&quot;, traceID),
-    zap.Duration(&quot;duration&quot;, elapsed),
-)
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="c1">// Structured logging with context</span>
+<span class="nx">logger</span><span class="p">.</span><span class="nx">Info</span><span class="p">(</span><span class="s">&quot;processing_test_request&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">zap</span><span class="p">.</span><span class="nx">String</span><span class="p">(</span><span class="s">&quot;router_id&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">routerID</span><span class="p">),</span>
+<span class="w">    </span><span class="nx">zap</span><span class="p">.</span><span class="nx">String</span><span class="p">(</span><span class="s">&quot;test_type&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">testType</span><span class="p">),</span>
+<span class="w">    </span><span class="nx">zap</span><span class="p">.</span><span class="nx">String</span><span class="p">(</span><span class="s">&quot;trace_id&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">traceID</span><span class="p">),</span>
+<span class="w">    </span><span class="nx">zap</span><span class="p">.</span><span class="nx">Duration</span><span class="p">(</span><span class="s">&quot;duration&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">elapsed</span><span class="p">),</span>
+<span class="p">)</span>
+</code></pre></div>
 
 <p><strong>3. Traces</strong> - Where did time go?</p>
-<pre class="codehilite"><code class="language-go">// Distributed tracing
-ctx, span := tracer.Start(ctx, &quot;process_test&quot;)
-defer span.End()
+<div class="codehilite"><pre><span></span><code><span class="c1">// Distributed tracing</span>
+<span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">span</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">tracer</span><span class="p">.</span><span class="nx">Start</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;process_test&quot;</span><span class="p">)</span>
+<span class="k">defer</span><span class="w"> </span><span class="nx">span</span><span class="p">.</span><span class="nx">End</span><span class="p">()</span>
 
-span.SetAttributes(
-    attribute.String(&quot;router.id&quot;, routerID),
-    attribute.String(&quot;test.type&quot;, testType),
-)
+<span class="nx">span</span><span class="p">.</span><span class="nx">SetAttributes</span><span class="p">(</span>
+<span class="w">    </span><span class="nx">attribute</span><span class="p">.</span><span class="nx">String</span><span class="p">(</span><span class="s">&quot;router.id&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">routerID</span><span class="p">),</span>
+<span class="w">    </span><span class="nx">attribute</span><span class="p">.</span><span class="nx">String</span><span class="p">(</span><span class="s">&quot;test.type&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">testType</span><span class="p">),</span>
+<span class="p">)</span>
 
-// Spans propagate across service boundaries
-</code></pre>
+<span class="c1">// Spans propagate across service boundaries</span>
+</code></pre></div>
 
 <h3>The 25,000 Metric Points We Captured Daily</h3>
 <p>At NTUC, capturing 25k metrics daily meant we could:
@@ -218,85 +220,85 @@ span.SetAttributes(
 <h2>Lesson 4: Data Consistency Patterns</h2>
 <h3>Pattern 1: Saga Pattern (Distributed Transactions)</h3>
 <p>When you need to coordinate across multiple services, use the Saga pattern:</p>
-<pre class="codehilite"><code class="language-go">// Saga for order processing
-type OrderSaga struct {
-    steps []SagaStep
-}
+<div class="codehilite"><pre><span></span><code><span class="c1">// Saga for order processing</span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">OrderSaga</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">steps</span><span class="w"> </span><span class="p">[]</span><span class="nx">SagaStep</span>
+<span class="p">}</span>
 
-type SagaStep struct {
-    Execute    func(ctx context.Context) error
-    Compensate func(ctx context.Context) error
-}
+<span class="kd">type</span><span class="w"> </span><span class="nx">SagaStep</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Execute</span><span class="w">    </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+<span class="w">    </span><span class="nx">Compensate</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+<span class="p">}</span>
 
-func (s *OrderSaga) Execute(ctx context.Context) error {
-    executed := []SagaStep{}
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><span class="nx">OrderSaga</span><span class="p">)</span><span class="w"> </span><span class="nx">Execute</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">executed</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="p">[]</span><span class="nx">SagaStep</span><span class="p">{}</span>
 
-    for _, step := range s.steps {
-        if err := step.Execute(ctx); err != nil {
-            // Compensate in reverse order
-            for i := len(executed) - 1; i &gt;= 0; i-- {
-                executed[i].Compensate(ctx)
-            }
-            return err
-        }
-        executed = append(executed, step)
-    }
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">step</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="k">range</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">steps</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">step</span><span class="p">.</span><span class="nx">Execute</span><span class="p">(</span><span class="nx">ctx</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Compensate in reverse order</span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="nx">i</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="nx">executed</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="nx">i</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="nx">i</span><span class="o">--</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nx">executed</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">Compensate</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="nx">executed</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">append</span><span class="p">(</span><span class="nx">executed</span><span class="p">,</span><span class="w"> </span><span class="nx">step</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
 
-    return nil
-}
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span>
+<span class="p">}</span>
 
-// Usage
-saga := &amp;OrderSaga{
-    steps: []SagaStep{
-        {
-            Execute:    reserveInventory,
-            Compensate: releaseInventory,
-        },
-        {
-            Execute:    chargePayment,
-            Compensate: refundPayment,
-        },
-        {
-            Execute:    scheduleShipment,
-            Compensate: cancelShipment,
-        },
-    },
-}
-</code></pre>
+<span class="c1">// Usage</span>
+<span class="nx">saga</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">OrderSaga</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">steps</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="nx">SagaStep</span><span class="p">{</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">Execute</span><span class="p">:</span><span class="w">    </span><span class="nx">reserveInventory</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">Compensate</span><span class="p">:</span><span class="w"> </span><span class="nx">releaseInventory</span><span class="p">,</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">Execute</span><span class="p">:</span><span class="w">    </span><span class="nx">chargePayment</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">Compensate</span><span class="p">:</span><span class="w"> </span><span class="nx">refundPayment</span><span class="p">,</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">Execute</span><span class="p">:</span><span class="w">    </span><span class="nx">scheduleShipment</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">Compensate</span><span class="p">:</span><span class="w"> </span><span class="nx">cancelShipment</span><span class="p">,</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <h3>Pattern 2: Event Sourcing</h3>
 <p>Store <strong>events</strong> instead of current state. Rebuild state by replaying events.</p>
 <p>At HelloFresh, we used this for recipe and SKU management:</p>
-<pre class="codehilite"><code class="language-go">// Events
-type RecipeCreated struct {
-    RecipeID   string
-    Name       string
-    Timestamp  time.Time
-}
+<div class="codehilite"><pre><span></span><code><span class="c1">// Events</span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">RecipeCreated</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">RecipeID</span><span class="w">   </span><span class="kt">string</span>
+<span class="w">    </span><span class="nx">Name</span><span class="w">       </span><span class="kt">string</span>
+<span class="w">    </span><span class="nx">Timestamp</span><span class="w">  </span><span class="nx">time</span><span class="p">.</span><span class="nx">Time</span>
+<span class="p">}</span>
 
-type IngredientAdded struct {
-    RecipeID   string
-    Ingredient Ingredient
-    Timestamp  time.Time
-}
+<span class="kd">type</span><span class="w"> </span><span class="nx">IngredientAdded</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">RecipeID</span><span class="w">   </span><span class="kt">string</span>
+<span class="w">    </span><span class="nx">Ingredient</span><span class="w"> </span><span class="nx">Ingredient</span>
+<span class="w">    </span><span class="nx">Timestamp</span><span class="w">  </span><span class="nx">time</span><span class="p">.</span><span class="nx">Time</span>
+<span class="p">}</span>
 
-// Aggregate
-type Recipe struct {
-    ID          string
-    Name        string
-    Ingredients []Ingredient
-}
+<span class="c1">// Aggregate</span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">Recipe</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">ID</span><span class="w">          </span><span class="kt">string</span>
+<span class="w">    </span><span class="nx">Name</span><span class="w">        </span><span class="kt">string</span>
+<span class="w">    </span><span class="nx">Ingredients</span><span class="w"> </span><span class="p">[]</span><span class="nx">Ingredient</span>
+<span class="p">}</span>
 
-func (r *Recipe) Apply(event Event) {
-    switch e := event.(type) {
-    case RecipeCreated:
-        r.ID = e.RecipeID
-        r.Name = e.Name
-    case IngredientAdded:
-        r.Ingredients = append(r.Ingredients, e.Ingredient)
-    }
-}
-</code></pre>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="o">*</span><span class="nx">Recipe</span><span class="p">)</span><span class="w"> </span><span class="nx">Apply</span><span class="p">(</span><span class="nx">event</span><span class="w"> </span><span class="nx">Event</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="nx">e</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">event</span><span class="p">.(</span><span class="kd">type</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="nx">RecipeCreated</span><span class="p">:</span>
+<span class="w">        </span><span class="nx">r</span><span class="p">.</span><span class="nx">ID</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">e</span><span class="p">.</span><span class="nx">RecipeID</span>
+<span class="w">        </span><span class="nx">r</span><span class="p">.</span><span class="nx">Name</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">e</span><span class="p">.</span><span class="nx">Name</span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="nx">IngredientAdded</span><span class="p">:</span>
+<span class="w">        </span><span class="nx">r</span><span class="p">.</span><span class="nx">Ingredients</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">append</span><span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nx">Ingredients</span><span class="p">,</span><span class="w"> </span><span class="nx">e</span><span class="p">.</span><span class="nx">Ingredient</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <p><strong>Benefits:</strong>
 - Complete audit trail
@@ -306,75 +308,75 @@ func (r *Recipe) Apply(event Event) {
 <h2>Lesson 5: Backpressure and Rate Limiting</h2>
 <p>When I joined Airtel Digital, we had a problem: traffic spikes would overwhelm downstream services. The solution? Layers of backpressure.</p>
 <h3>Token Bucket Rate Limiter</h3>
-<pre class="codehilite"><code class="language-go">type TokenBucket struct {
-    capacity   int
-    tokens     int
-    refillRate time.Duration
-    mu         sync.Mutex
-}
+<div class="codehilite"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">TokenBucket</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">capacity</span><span class="w">   </span><span class="kt">int</span>
+<span class="w">    </span><span class="nx">tokens</span><span class="w">     </span><span class="kt">int</span>
+<span class="w">    </span><span class="nx">refillRate</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Duration</span>
+<span class="w">    </span><span class="nx">mu</span><span class="w">         </span><span class="nx">sync</span><span class="p">.</span><span class="nx">Mutex</span>
+<span class="p">}</span>
 
-func (tb *TokenBucket) Allow() bool {
-    tb.mu.Lock()
-    defer tb.mu.Unlock()
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">tb</span><span class="w"> </span><span class="o">*</span><span class="nx">TokenBucket</span><span class="p">)</span><span class="w"> </span><span class="nx">Allow</span><span class="p">()</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">tb</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nx">Lock</span><span class="p">()</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">tb</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nx">Unlock</span><span class="p">()</span>
 
-    if tb.tokens &gt; 0 {
-        tb.tokens--
-        return true
-    }
-    return false
-}
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">tb</span><span class="p">.</span><span class="nx">tokens</span><span class="w"> </span><span class="p">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">tb</span><span class="p">.</span><span class="nx">tokens</span><span class="o">--</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">false</span>
+<span class="p">}</span>
 
-func (tb *TokenBucket) refill() {
-    ticker := time.NewTicker(tb.refillRate)
-    for range ticker.C {
-        tb.mu.Lock()
-        if tb.tokens &lt; tb.capacity {
-            tb.tokens++
-        }
-        tb.mu.Unlock()
-    }
-}
-</code></pre>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">tb</span><span class="w"> </span><span class="o">*</span><span class="nx">TokenBucket</span><span class="p">)</span><span class="w"> </span><span class="nx">refill</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">ticker</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">NewTicker</span><span class="p">(</span><span class="nx">tb</span><span class="p">.</span><span class="nx">refillRate</span><span class="p">)</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="k">range</span><span class="w"> </span><span class="nx">ticker</span><span class="p">.</span><span class="nx">C</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">tb</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nx">Lock</span><span class="p">()</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">tb</span><span class="p">.</span><span class="nx">tokens</span><span class="w"> </span><span class="p">&lt;</span><span class="w"> </span><span class="nx">tb</span><span class="p">.</span><span class="nx">capacity</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">tb</span><span class="p">.</span><span class="nx">tokens</span><span class="o">++</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="nx">tb</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nx">Unlock</span><span class="p">()</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <h3>Load Shedding</h3>
-<pre class="codehilite"><code class="language-go">func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-    // Shed load if queue is too full
-    if h.queue.Len() &gt; h.maxQueueSize {
-        http.Error(w, &quot;Service Unavailable&quot;, http.StatusServiceUnavailable)
-        return
-    }
+<div class="codehilite"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">h</span><span class="w"> </span><span class="o">*</span><span class="nx">Handler</span><span class="p">)</span><span class="w"> </span><span class="nx">ServeHTTP</span><span class="p">(</span><span class="nx">w</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="w"> </span><span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Shed load if queue is too full</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">h</span><span class="p">.</span><span class="nx">queue</span><span class="p">.</span><span class="nx">Len</span><span class="p">()</span><span class="w"> </span><span class="p">&gt;</span><span class="w"> </span><span class="nx">h</span><span class="p">.</span><span class="nx">maxQueueSize</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">http</span><span class="p">.</span><span class="nx">Error</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Service Unavailable&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">StatusServiceUnavailable</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span>
+<span class="w">    </span><span class="p">}</span>
 
-    // Or shed based on request priority
-    priority := r.Header.Get(&quot;X-Request-Priority&quot;)
-    if priority == &quot;low&quot; &amp;&amp; h.isOverloaded() {
-        http.Error(w, &quot;Service Unavailable&quot;, http.StatusServiceUnavailable)
-        return
-    }
+<span class="w">    </span><span class="c1">// Or shed based on request priority</span>
+<span class="w">    </span><span class="nx">priority</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">Header</span><span class="p">.</span><span class="nx">Get</span><span class="p">(</span><span class="s">&quot;X-Request-Priority&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">priority</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;low&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">h</span><span class="p">.</span><span class="nx">isOverloaded</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">http</span><span class="p">.</span><span class="nx">Error</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Service Unavailable&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">StatusServiceUnavailable</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span>
+<span class="w">    </span><span class="p">}</span>
 
-    h.next.ServeHTTP(w, r)
-}
-</code></pre>
+<span class="w">    </span><span class="nx">h</span><span class="p">.</span><span class="nx">next</span><span class="p">.</span><span class="nx">ServeHTTP</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <h2>Lesson 6: The Importance of Idempotency</h2>
 <p><strong>Every operation in a distributed system should be idempotent.</strong></p>
 <p>At HelloFresh, payment processing had to be idempotent - customers shouldn't be charged twice if a request is retried.</p>
-<pre class="codehilite"><code class="language-go">func (s *PaymentService) ProcessPayment(ctx context.Context, req PaymentRequest) error {
-    idempotencyKey := req.IdempotencyKey
+<div class="codehilite"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><span class="nx">PaymentService</span><span class="p">)</span><span class="w"> </span><span class="nx">ProcessPayment</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">req</span><span class="w"> </span><span class="nx">PaymentRequest</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">idempotencyKey</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">req</span><span class="p">.</span><span class="nx">IdempotencyKey</span>
 
-    // Check if already processed
-    if result, found := s.cache.Get(idempotencyKey); found {
-        return result.Error
-    }
+<span class="w">    </span><span class="c1">// Check if already processed</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">result</span><span class="p">,</span><span class="w"> </span><span class="nx">found</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">cache</span><span class="p">.</span><span class="nx">Get</span><span class="p">(</span><span class="nx">idempotencyKey</span><span class="p">);</span><span class="w"> </span><span class="nx">found</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">result</span><span class="p">.</span><span class="nx">Error</span>
+<span class="w">    </span><span class="p">}</span>
 
-    // Process payment
-    result := s.chargeCard(ctx, req)
+<span class="w">    </span><span class="c1">// Process payment</span>
+<span class="w">    </span><span class="nx">result</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">chargeCard</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">req</span><span class="p">)</span>
 
-    // Store result with TTL
-    s.cache.Set(idempotencyKey, result, 24*time.Hour)
+<span class="w">    </span><span class="c1">// Store result with TTL</span>
+<span class="w">    </span><span class="nx">s</span><span class="p">.</span><span class="nx">cache</span><span class="p">.</span><span class="nx">Set</span><span class="p">(</span><span class="nx">idempotencyKey</span><span class="p">,</span><span class="w"> </span><span class="nx">result</span><span class="p">,</span><span class="w"> </span><span class="mi">24</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Hour</span><span class="p">)</span>
 
-    return result.Error
-}
-</code></pre>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">result</span><span class="p">.</span><span class="nx">Error</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <h2>Lesson 7: Cache Carefully</h2>
 <p>Caching is a double-edged sword. At NTUC, we used Redis master-slave for caching, and learned:</p>
@@ -391,41 +393,41 @@ func (tb *TokenBucket) refill() {
 <li>Small datasets (overhead &gt; benefit)</li>
 </ul>
 <h3>Cache Invalidation Strategy</h3>
-<pre class="codehilite"><code class="language-go">// Write-through cache
-func (s *Service) UpdateUser(ctx context.Context, user User) error {
-    // Update database
-    if err := s.db.Update(user); err != nil {
-        return err
-    }
+<div class="codehilite"><pre><span></span><code><span class="c1">// Write-through cache</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><span class="nx">Service</span><span class="p">)</span><span class="w"> </span><span class="nx">UpdateUser</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">user</span><span class="w"> </span><span class="nx">User</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Update database</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">db</span><span class="p">.</span><span class="nx">Update</span><span class="p">(</span><span class="nx">user</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+<span class="w">    </span><span class="p">}</span>
 
-    // Update cache
-    if err := s.cache.Set(user.ID, user); err != nil {
-        // Log but don't fail - cache miss is ok
-        log.Error(&quot;cache_update_failed&quot;, zap.Error(err))
-    }
+<span class="w">    </span><span class="c1">// Update cache</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">cache</span><span class="p">.</span><span class="nx">Set</span><span class="p">(</span><span class="nx">user</span><span class="p">.</span><span class="nx">ID</span><span class="p">,</span><span class="w"> </span><span class="nx">user</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Log but don&#39;t fail - cache miss is ok</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Error</span><span class="p">(</span><span class="s">&quot;cache_update_failed&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">zap</span><span class="p">.</span><span class="nx">Error</span><span class="p">(</span><span class="nx">err</span><span class="p">))</span>
+<span class="w">    </span><span class="p">}</span>
 
-    return nil
-}
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span>
+<span class="p">}</span>
 
-// Cache-aside pattern
-func (s *Service) GetUser(ctx context.Context, userID string) (*User, error) {
-    // Try cache first
-    if user, found := s.cache.Get(userID); found {
-        return user, nil
-    }
+<span class="c1">// Cache-aside pattern</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><span class="nx">Service</span><span class="p">)</span><span class="w"> </span><span class="nx">GetUser</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">userID</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="nx">User</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Try cache first</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">found</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">cache</span><span class="p">.</span><span class="nx">Get</span><span class="p">(</span><span class="nx">userID</span><span class="p">);</span><span class="w"> </span><span class="nx">found</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span>
+<span class="w">    </span><span class="p">}</span>
 
-    // Cache miss - get from DB
-    user, err := s.db.Get(userID)
-    if err != nil {
-        return nil, err
-    }
+<span class="w">    </span><span class="c1">// Cache miss - get from DB</span>
+<span class="w">    </span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">db</span><span class="p">.</span><span class="nx">Get</span><span class="p">(</span><span class="nx">userID</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span>
+<span class="w">    </span><span class="p">}</span>
 
-    // Populate cache
-    s.cache.Set(userID, user)
+<span class="w">    </span><span class="c1">// Populate cache</span>
+<span class="w">    </span><span class="nx">s</span><span class="p">.</span><span class="nx">cache</span><span class="p">.</span><span class="nx">Set</span><span class="p">(</span><span class="nx">userID</span><span class="p">,</span><span class="w"> </span><span class="nx">user</span><span class="p">)</span>
 
-    return user, nil
-}
-</code></pre>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <h2>Conclusion</h2>
 <p>Building distributed systems is hard. There's no silver bullet, no perfect architecture. What works at 1,000 RPS fails at 100,000 RPS.</p>
@@ -493,5 +495,14 @@ func (s *Service) GetUser(ctx context.Context, userID string) (*User, error) {
             </div>
         </div>
     </footer>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false}
+            ],
+            throwOnError: false
+        });"></script>
 </body>
 </html>
