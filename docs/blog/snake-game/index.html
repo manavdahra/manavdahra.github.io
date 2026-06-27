@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Snake Game: WebGL Physics Demo - Manav Dahra</title>
     <link rel="stylesheet" href="../../static/css/style.css">
+    <link rel="stylesheet" href="../../static/css/pygments.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 </head>
 <body>
     <nav class="navbar">
@@ -189,22 +191,22 @@
 <h3>The Snake's Body Problem</h3>
 <p>The hardest part was making the snake's body follow the head smoothly. My first approach was purely kinematic - calculating positions based on the path. It looked robotic and lifeless.</p>
 <p>The breakthrough came when I embraced the physics engine:</p>
-<pre class="codehilite"><code class="language-javascript">// Each body segment is a physics body with constraints
-const constraint = new PointToPointConstraint(
-    prevSegment.body,
-    new Vec3(0, 0, segmentLength / 2),
-    segment.body,
-    new Vec3(0, 0, -segmentLength / 2)
-);
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="c1">// Each body segment is a physics body with constraints</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">constraint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">PointToPointConstraint</span><span class="p">(</span>
+<span class="w">    </span><span class="nx">prevSegment</span><span class="p">.</span><span class="nx">body</span><span class="p">,</span>
+<span class="w">    </span><span class="ow">new</span><span class="w"> </span><span class="nx">Vec3</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="nx">segmentLength</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">2</span><span class="p">),</span>
+<span class="w">    </span><span class="nx">segment</span><span class="p">.</span><span class="nx">body</span><span class="p">,</span>
+<span class="w">    </span><span class="ow">new</span><span class="w"> </span><span class="nx">Vec3</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="nx">segmentLength</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">2</span><span class="p">)</span>
+<span class="p">);</span>
+</code></pre></div>
 
 <p>By using point-to-point constraints, the snake's body naturally follows the head with realistic momentum and wobble. The physics engine handles all the math.</p>
 <h2>Lesson 2: Camera Control Makes or Breaks the Experience</h2>
 <p>A third-person camera that follows a moving object is deceptively complex. It's not just about positioning - it's about <strong>anticipation and smoothness</strong>.</p>
-<pre class="codehilite"><code class="language-javascript">// Smooth camera follow with lerp (linear interpolation)
-camera.position.lerp(targetPosition, 0.1);
-camera.lookAt(snake.headPosition);
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="c1">// Smooth camera follow with lerp (linear interpolation)</span>
+<span class="nx">camera</span><span class="p">.</span><span class="nx">position</span><span class="p">.</span><span class="nx">lerp</span><span class="p">(</span><span class="nx">targetPosition</span><span class="p">,</span><span class="w"> </span><span class="mf">0.1</span><span class="p">);</span>
+<span class="nx">camera</span><span class="p">.</span><span class="nx">lookAt</span><span class="p">(</span><span class="nx">snake</span><span class="p">.</span><span class="nx">headPosition</span><span class="p">);</span>
+</code></pre></div>
 
 <p>The magic number <code>0.1</code> took hours of tweaking. Too high, and the camera feels jittery. Too low, and it lags behind uncomfortably.</p>
 <p><strong>Key learning:</strong> User experience in 3D games is 80% about camera and controls, 20% about everything else.</p>
@@ -215,51 +217,51 @@ camera.lookAt(snake.headPosition);
 - <strong>Direction changes</strong> - Swipe gestures need to feel natural
 - <strong>Visual feedback</strong> - Users need to know where they're touching</p>
 <p>The solution combined touch events with state management:</p>
-<pre class="codehilite"><code class="language-javascript">canvas.addEventListener('touchstart', (e) =&gt; {
-    this.touchDown = true;
-    this.touchStartX = e.touches[0].clientX;
-});
+<div class="codehilite"><pre><span></span><code><span class="nx">canvas</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">&#39;touchstart&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">touchDown</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">;</span>
+<span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">touchStartX</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">e</span><span class="p">.</span><span class="nx">touches</span><span class="p">[</span><span class="mf">0</span><span class="p">].</span><span class="nx">clientX</span><span class="p">;</span>
+<span class="p">});</span>
 
-canvas.addEventListener('touchmove', (e) =&gt; {
-    if (!this.touchDown) return;
-    const deltaX = e.touches[0].clientX - this.touchStartX;
-    if (Math.abs(deltaX) &gt; 30) {
-        this.turnSnake(deltaX &gt; 0 ? 'right' : 'left');
-        this.touchStartX = e.touches[0].clientX;
-    }
-});
-</code></pre>
+<span class="nx">canvas</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">&#39;touchmove&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">touchDown</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">deltaX</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">e</span><span class="p">.</span><span class="nx">touches</span><span class="p">[</span><span class="mf">0</span><span class="p">].</span><span class="nx">clientX</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">touchStartX</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">Math</span><span class="p">.</span><span class="nx">abs</span><span class="p">(</span><span class="nx">deltaX</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">30</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="nx">turnSnake</span><span class="p">(</span><span class="nx">deltaX</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s1">&#39;right&#39;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;left&#39;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="nx">touchStartX</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">e</span><span class="p">.</span><span class="nx">touches</span><span class="p">[</span><span class="mf">0</span><span class="p">].</span><span class="nx">clientX</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">});</span>
+</code></pre></div>
 
 <p><strong>Lesson learned:</strong> Always test on real devices. Chrome DevTools mobile emulation doesn't capture the feel of actual touch interactions.</p>
 <h2>Lesson 4: Textures and Visual Polish Matter</h2>
 <p>My first version had a solid green snake. Functional, but boring.</p>
 <p>Adding a procedural texture changed everything:</p>
-<pre class="codehilite"><code class="language-javascript">createSnakePattern() {
-    const canvas = document.createElement('canvas');
-    canvas.width = 64;
-    canvas.height = 64;
-    const ctx = canvas.getContext('2d');
+<div class="codehilite"><pre><span></span><code><span class="nx">createSnakePattern</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">canvas</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">document</span><span class="p">.</span><span class="nx">createElement</span><span class="p">(</span><span class="s1">&#39;canvas&#39;</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">canvas</span><span class="p">.</span><span class="nx">width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">64</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">canvas</span><span class="p">.</span><span class="nx">height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">64</span><span class="p">;</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">ctx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">canvas</span><span class="p">.</span><span class="nx">getContext</span><span class="p">(</span><span class="s1">&#39;2d&#39;</span><span class="p">);</span>
 
-    // Base color
-    ctx.fillStyle = '#AAff00';
-    ctx.fillRect(0, 0, 64, 64);
+<span class="w">    </span><span class="c1">// Base color</span>
+<span class="w">    </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">fillStyle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;#AAff00&#39;</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">fillRect</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">64</span><span class="p">,</span><span class="w"> </span><span class="mf">64</span><span class="p">);</span>
 
-    // Add black stripes/scales pattern
-    ctx.fillStyle = '#000000';
-    for (let i = 0; i &lt; 64; i += 16) {
-        for (let j = 0; j &lt; 64; j += 16) {
-            if ((i + j) % 32 === 0) {
-                ctx.fillRect(i, j, 12, 12);
-            }
-        }
-    }
+<span class="w">    </span><span class="c1">// Add black stripes/scales pattern</span>
+<span class="w">    </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">fillStyle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;#000000&#39;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">let</span><span class="w"> </span><span class="nx">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0</span><span class="p">;</span><span class="w"> </span><span class="nx">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">64</span><span class="p">;</span><span class="w"> </span><span class="nx">i</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mf">16</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">let</span><span class="w"> </span><span class="nx">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0</span><span class="p">;</span><span class="w"> </span><span class="nx">j</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">64</span><span class="p">;</span><span class="w"> </span><span class="nx">j</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mf">16</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="nx">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">j</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mf">32</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">fillRect</span><span class="p">(</span><span class="nx">i</span><span class="p">,</span><span class="w"> </span><span class="nx">j</span><span class="p">,</span><span class="w"> </span><span class="mf">12</span><span class="p">,</span><span class="w"> </span><span class="mf">12</span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
 
-    const texture = new CanvasTexture(canvas);
-    texture.wrapS = RepeatWrapping;
-    texture.wrapT = RepeatWrapping;
-    return texture;
-}
-</code></pre>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">texture</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">CanvasTexture</span><span class="p">(</span><span class="nx">canvas</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">texture</span><span class="p">.</span><span class="nx">wrapS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">RepeatWrapping</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">texture</span><span class="p">.</span><span class="nx">wrapT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">RepeatWrapping</span><span class="p">;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">texture</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <p>Creating textures programmatically with canvas gives you:
 - No external assets to load
@@ -276,54 +278,54 @@ canvas.addEventListener('touchmove', (e) =&gt; {
 <li>Render the scene</li>
 </ol>
 <p>Order matters enormously. Physics before state. State before rendering.</p>
-<pre class="codehilite"><code class="language-javascript">animate() {
-    requestAnimationFrame(() =&gt; this.animate());
+<div class="codehilite"><pre><span></span><code><span class="nx">animate</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">requestAnimationFrame</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">animate</span><span class="p">());</span>
 
-    const deltaTime = Math.min(this.clock.getDelta(), 0.1);
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">deltaTime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Math</span><span class="p">.</span><span class="nx">min</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">clock</span><span class="p">.</span><span class="nx">getDelta</span><span class="p">(),</span><span class="w"> </span><span class="mf">0.1</span><span class="p">);</span>
 
-    // 1. Physics
-    this.world.step(1/60, deltaTime, 3);
+<span class="w">    </span><span class="c1">// 1. Physics</span>
+<span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">world</span><span class="p">.</span><span class="nx">step</span><span class="p">(</span><span class="mf">1</span><span class="o">/</span><span class="mf">60</span><span class="p">,</span><span class="w"> </span><span class="nx">deltaTime</span><span class="p">,</span><span class="w"> </span><span class="mf">3</span><span class="p">);</span>
 
-    // 2. Game logic
-    if (this.isPlaying) {
-        this.snake.update(deltaTime);
-        this.checkCollisions();
-    }
+<span class="w">    </span><span class="c1">// 2. Game logic</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">isPlaying</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="nx">snake</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="nx">deltaTime</span><span class="p">);</span>
+<span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="nx">checkCollisions</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
 
-    // 3. Camera
-    this.updateCamera();
+<span class="w">    </span><span class="c1">// 3. Camera</span>
+<span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">updateCamera</span><span class="p">();</span>
 
-    // 4. Render
-    this.renderer.render(this.scene, this.camera);
-    this.labelRenderer.render(this.scene, this.camera);
-}
-</code></pre>
+<span class="w">    </span><span class="c1">// 4. Render</span>
+<span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">renderer</span><span class="p">.</span><span class="nx">render</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">camera</span><span class="p">);</span>
+<span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">labelRenderer</span><span class="p">.</span><span class="nx">render</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">camera</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <p>The <code>Math.min(this.clock.getDelta(), 0.1)</code> cap prevents physics explosions when the tab loses focus and regains it - a bug that took me hours to track down.</p>
 <h2>Lesson 6: Debugging 3D Is Different</h2>
 <p>When your game has a bug, you can't just <code>console.log()</code> your way through it. You need visual debugging tools.</p>
 <p>Cannon.js has a debugger that renders physics bodies as wireframes. This was invaluable for understanding why collisions weren't working as expected.</p>
-<pre class="codehilite"><code class="language-javascript">import cannonDebugger from 'cannon-es-debugger';
-const debugger = cannonDebugger(scene, world.bodies);
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="nx">cannonDebugger</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;cannon-es-debugger&#39;</span><span class="p">;</span>
+<span class="kd">const</span><span class="w"> </span><span class="k">debugger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">cannonDebugger</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">world</span><span class="p">.</span><span class="nx">bodies</span><span class="p">);</span>
+</code></pre></div>
 
 <p><strong>Pro tip:</strong> Build debug modes into your game from day one. Toggle-able with a key press. Future you will thank present you.</p>
 <h2>Lessons on Performance</h2>
 <p>Running 3D graphics and physics at 60fps on a web page isn't trivial. Here's what I learned:</p>
 <h3>1. Minimize Physics Bodies</h3>
 <p>Each body in the physics world costs computation. My apple collection system initially created hundreds of physics bodies. I refactored to reuse a pool of 10 apple objects.</p>
-<pre class="codehilite"><code class="language-javascript">// Bad: Creating new physics body each time
-spawnApple() {
-    const apple = new Apple(this.scene, this.world);
-    this.apples.push(apple);
-}
+<div class="codehilite"><pre><span></span><code><span class="c1">// Bad: Creating new physics body each time</span>
+<span class="nx">spawnApple</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">apple</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Apple</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">world</span><span class="p">);</span>
+<span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">apples</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">apple</span><span class="p">);</span>
+<span class="p">}</span>
 
-// Good: Reuse from pool
-spawnApple() {
-    const apple = this.applePool.find(a =&gt; !a.active);
-    apple.respawn(position);
-}
-</code></pre>
+<span class="c1">// Good: Reuse from pool</span>
+<span class="nx">spawnApple</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">apple</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">applePool</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="nx">a</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="o">!</span><span class="nx">a</span><span class="p">.</span><span class="nx">active</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">apple</span><span class="p">.</span><span class="nx">respawn</span><span class="p">(</span><span class="nx">position</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <h3>2. Reduce Draw Calls</h3>
 <p>Every unique material causes a separate draw call. I use one shared texture for all snake segments, reducing draw calls from 20+ to 1.</p>
@@ -419,5 +421,14 @@ spawnApple() {
             </div>
         </div>
     </footer>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false}
+            ],
+            throwOnError: false
+        });"></script>
 </body>
 </html>

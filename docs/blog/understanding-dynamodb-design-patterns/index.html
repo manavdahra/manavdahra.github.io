@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Understanding DynamoDB: Design Patterns for Scale - Manav Dahra</title>
     <link rel="stylesheet" href="../../static/css/style.css">
+    <link rel="stylesheet" href="../../static/css/pygments.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 </head>
 <body>
     <nav class="navbar">
@@ -66,21 +68,21 @@
 <h2>Key Design Principles</h2>
 <h3>1. Denormalization is Your Friend</h3>
 <p>Unlike relational databases where normalization is gospel, DynamoDB thrives on denormalization. Store related data together in the same item or table.</p>
-<pre class="codehilite"><code class="language-python"># Instead of multiple tables, use composite keys
-{
-    &quot;PK&quot;: &quot;ROUTER#12345&quot;,
-    &quot;SK&quot;: &quot;TEST#2026-03-01T10:00:00Z&quot;,
-    &quot;router_id&quot;: &quot;12345&quot;,
-    &quot;test_type&quot;: &quot;latency&quot;,
-    &quot;result&quot;: {
-        &quot;latency_ms&quot;: 45,
-        &quot;jitter&quot;: 2,
-        &quot;packet_loss&quot;: 0.1
-    },
-    &quot;location&quot;: &quot;US-WEST&quot;,
-    &quot;isp&quot;: &quot;ExampleISP&quot;
-}
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Instead of multiple tables, use composite keys</span>
+<span class="p">{</span>
+    <span class="s2">&quot;PK&quot;</span><span class="p">:</span> <span class="s2">&quot;ROUTER#12345&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SK&quot;</span><span class="p">:</span> <span class="s2">&quot;TEST#2026-03-01T10:00:00Z&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;router_id&quot;</span><span class="p">:</span> <span class="s2">&quot;12345&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;test_type&quot;</span><span class="p">:</span> <span class="s2">&quot;latency&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;latency_ms&quot;</span><span class="p">:</span> <span class="mi">45</span><span class="p">,</span>
+        <span class="s2">&quot;jitter&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="s2">&quot;packet_loss&quot;</span><span class="p">:</span> <span class="mf">0.1</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="s2">&quot;US-WEST&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;isp&quot;</span><span class="p">:</span> <span class="s2">&quot;ExampleISP&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <h3>2. Access Patterns First, Schema Second</h3>
 <p>The cardinal rule: <strong>Know your access patterns before designing your schema</strong>. DynamoDB rewards careful upfront planning.</p>
@@ -106,27 +108,27 @@
 <h2>Real-World Patterns</h2>
 <h3>Pattern 1: Single Table Design</h3>
 <p>For complex applications, a single table design can reduce costs and complexity. Use the partition key (PK) and sort key (SK) creatively:</p>
-<pre class="codehilite"><code class="language-python"># User profile
-PK: &quot;USER#alice&quot;
-SK: &quot;PROFILE#&quot;
+<div class="codehilite"><pre><span></span><code><span class="c1"># User profile</span>
+<span class="n">PK</span><span class="p">:</span> <span class="s2">&quot;USER#alice&quot;</span>
+<span class="n">SK</span><span class="p">:</span> <span class="s2">&quot;PROFILE#&quot;</span>
 
-# User's orders
-PK: &quot;USER#alice&quot;
-SK: &quot;ORDER#2026-02-15#12345&quot;
+<span class="c1"># User&#39;s orders</span>
+<span class="n">PK</span><span class="p">:</span> <span class="s2">&quot;USER#alice&quot;</span>
+<span class="n">SK</span><span class="p">:</span> <span class="s2">&quot;ORDER#2026-02-15#12345&quot;</span>
 
-# Order details
-PK: &quot;ORDER#12345&quot;
-SK: &quot;METADATA#&quot;
-</code></pre>
+<span class="c1"># Order details</span>
+<span class="n">PK</span><span class="p">:</span> <span class="s2">&quot;ORDER#12345&quot;</span>
+<span class="n">SK</span><span class="p">:</span> <span class="s2">&quot;METADATA#&quot;</span>
+</code></pre></div>
 
 <h3>Pattern 2: Time Series Data</h3>
 <p>For our router testing system, we needed to store millions of test results efficiently:</p>
-<pre class="codehilite"><code class="language-python">PK: &quot;ROUTER#12345&quot;
-SK: &quot;2026-03#TEST#001&quot;  # Year-Month prefix for TTL and queries
+<div class="codehilite"><pre><span></span><code><span class="n">PK</span><span class="p">:</span> <span class="s2">&quot;ROUTER#12345&quot;</span>
+<span class="n">SK</span><span class="p">:</span> <span class="s2">&quot;2026-03#TEST#001&quot;</span>  <span class="c1"># Year-Month prefix for TTL and queries</span>
 
-# Use composite sort key for time-range queries
-# Enable TTL to automatically delete old data
-</code></pre>
+<span class="c1"># Use composite sort key for time-range queries</span>
+<span class="c1"># Enable TTL to automatically delete old data</span>
+</code></pre></div>
 
 <h3>Pattern 3: Real-time Aggregation with DynamoDB Streams</h3>
 <p>Combine DynamoDB Streams with Lambda for real-time data processing:</p>
@@ -139,36 +141,36 @@ SK: &quot;2026-03#TEST#001&quot;  # Year-Month prefix for TTL and queries
 <h2>Performance Optimization</h2>
 <h3>Batching Operations</h3>
 <p>Use <code>BatchGetItem</code> and <code>BatchWriteItem</code> to reduce latency:</p>
-<pre class="codehilite"><code class="language-python">import boto3
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">boto3</span>
 
-dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('RouterTests')
+<span class="n">dynamodb</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">resource</span><span class="p">(</span><span class="s1">&#39;dynamodb&#39;</span><span class="p">)</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">dynamodb</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="s1">&#39;RouterTests&#39;</span><span class="p">)</span>
 
-# Batch write up to 25 items
-with table.batch_writer() as batch:
-    for item in items:
-        batch.put_item(Item=item)
-</code></pre>
+<span class="c1"># Batch write up to 25 items</span>
+<span class="k">with</span> <span class="n">table</span><span class="o">.</span><span class="n">batch_writer</span><span class="p">()</span> <span class="k">as</span> <span class="n">batch</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+        <span class="n">batch</span><span class="o">.</span><span class="n">put_item</span><span class="p">(</span><span class="n">Item</span><span class="o">=</span><span class="n">item</span><span class="p">)</span>
+</code></pre></div>
 
 <h3>Exponential Backoff</h3>
 <p>Always implement exponential backoff for throttled requests. AWS SDKs handle this automatically, but custom retry logic can be tuned:</p>
-<pre class="codehilite"><code class="language-python">import time
-import random
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
 
-def write_with_retry(table, item, max_retries=5):
-    for attempt in range(max_retries):
-        try:
-            return table.put_item(Item=item)
-        except ClientError as e:
-            if e.response['Error']['Code'] == 'ProvisionedThroughputExceededException':
-                if attempt == max_retries - 1:
-                    raise
-                # Exponential backoff with jitter
-                sleep_time = (2 ** attempt) + random.uniform(0, 1)
-                time.sleep(sleep_time)
-            else:
-                raise
-</code></pre>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_with_retry</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">attempt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_retries</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">table</span><span class="o">.</span><span class="n">put_item</span><span class="p">(</span><span class="n">Item</span><span class="o">=</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">ClientError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s1">&#39;Error&#39;</span><span class="p">][</span><span class="s1">&#39;Code&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ProvisionedThroughputExceededException&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">attempt</span> <span class="o">==</span> <span class="n">max_retries</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span>
+                <span class="c1"># Exponential backoff with jitter</span>
+                <span class="n">sleep_time</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">attempt</span><span class="p">)</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">sleep_time</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span>
+</code></pre></div>
 
 <h2>Cost Optimization</h2>
 <p>DynamoDB can get expensive if not managed carefully:</p>
@@ -251,5 +253,14 @@ def write_with_retry(table, item, max_retries=5):
             </div>
         </div>
     </footer>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false}
+            ],
+            throwOnError: false
+        });"></script>
 </body>
 </html>
