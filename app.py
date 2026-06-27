@@ -13,12 +13,21 @@ app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
 # Blog posts data structure
 BLOG_POSTS = [
     {
-        'title': 'Machine learning - Part I',
+        'title': 'Linear regression in Depth',
+        'slug': 'aimlj-2-linear-regression',
+        'date': datetime(2026, 6, 27),
+        'category': 'AI/ML',
+        'tags': ['ai', 'ml', 'linear regression', 'math'],
+        'excerpt': 'Baby steps',
+        'read_time': '1 hour',
+    },
+    {
+        'title': 'Intro to Machine learning',
         'slug': 'aimlj-1',
         'date': datetime(2026, 6, 24),
         'category': 'AI/ML',
         'tags': ['ai', 'ml', 'general advice'],
-        'excerpt': 'My journey of learning AI/ML',
+        'excerpt': 'The right way to approach ML and why it is important to learn the Math',
         'read_time': '15 min read',
     },
     {
