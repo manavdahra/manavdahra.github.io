@@ -21,6 +21,9 @@ def fix_paths_in_html(html_content, depth=0):
     
     # Fix game file paths
     html_content = re.sub(r'src="/game/', f'src="{prefix}game/', html_content)
+
+    # Fix aiml file paths
+    html_content = re.sub(r'src="/aiml/', f'src="{prefix}aiml/', html_content)
     
     # Fix navigation links based on depth
     if depth == 0:
@@ -106,6 +109,13 @@ def generate_static_site():
         game_dst = docs_dir / 'game'
         if game_src.exists():
             shutil.copytree(game_src, game_dst)
+
+        # Copy aiml files
+        print("  🧠 Copying aiml files...")
+        aiml_src = Path('src/aiml')
+        aiml_dst = docs_dir / 'aiml'
+        if aiml_src.exists():
+            shutil.copytree(aiml_src, aiml_dst)
         
         # Create .nojekyll file
         print("  📝 Creating .nojekyll file")
