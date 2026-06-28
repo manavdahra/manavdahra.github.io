@@ -4,6 +4,7 @@ Dev Blog - A blogging website for sharing learnings on Software Engineering and 
 from flask import Flask, render_template, abort, send_from_directory
 from datetime import datetime
 import markdown
+import re
 import os
 from pathlib import Path
 
@@ -13,13 +14,14 @@ app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
 # Blog posts data structure
 BLOG_POSTS = [
     {
-        'title': 'Linear regression in Depth',
-        'slug': 'aimlj-2-linear-regression',
+        'title': 'Hypothesis generation and Maximum Likelihood Estimation',
+        'slug': 'aimlj-2-hypothesis',
         'date': datetime(2026, 6, 27),
         'category': 'AI/ML',
-        'tags': ['ai', 'ml', 'linear regression', 'math'],
-        'excerpt': 'Baby steps',
-        'read_time': '1 hour',
+        'tags': ['ai', 'ml', 'ml-principle', 'math'],
+        'excerpt': 'The guiding principle to follow for building models',
+        'read_time': '15 min read',
+        'type': 'interactive',
     },
     {
         'title': 'Intro to Machine learning',
@@ -38,7 +40,7 @@ BLOG_POSTS = [
         'tags': ['webgl', 'three.js', 'cannon.js', 'game-dev', 'javascript'],
         'excerpt': 'A playable 3D snake game built with Three.js and Cannon.js physics engine. Use arrow keys or touch controls to play!',
         'read_time': '12 min read',
-        'type': 'interactive'
+        'type': 'game'
     },
     {
         'title': 'Understanding DynamoDB: Design Patterns for Scale',
@@ -93,14 +95,33 @@ def blog_post(slug):
     if post_file.exists():
         with open(post_file, 'r', encoding='utf-8') as f:
             content = f.read()
+            # Extract mermaid blocks before markdown processing (codehilite mangles them)
+            content = re.sub(
+                r'```mermaid\n(.*?)```',
+                lambda m: '<div class="mermaid">' + m.group(1) + '</div>',
+                content,
+                flags=re.DOTALL
+            )
+            # Protect math expressions from markdown processing (_underscores_ become <em>)
+            math_blocks = []
+            def stash_math(m):
+                math_blocks.append(m.group(0))
+                return f'MATHSTASH{len(math_blocks) - 1}END'
+
+            content = re.sub(r'\\begin\{[^}]+\}.+?\\end\{[^}]+\}', stash_math, content, flags=re.DOTALL)
+            content = re.sub(r'\$\$.+?\$\$', stash_math, content, flags=re.DOTALL)
+            content = re.sub(r'\$[^\$\n]+?\$', stash_math, content)
             # Convert markdown to HTML
             html_content = markdown.markdown(content, extensions=['fenced_code', 'codehilite', 'tables'])
+            # Restore math expressions
+            for i, block in enumerate(math_blocks):
+                html_content = html_content.replace(f'MATHSTASH{i}END', block)
             post['content'] = html_content
     else:
         post['content'] = '<p>Content coming soon...</p>'
     
-    # Handle interactive posts (like the snake game) with game demo + blog content
-    if post.get('type') == 'interactive':
+    # Snake game uses a dedicated game template; all other posts use post.html
+    if post.get('type') == 'game':
         return render_template('post_game.html', post=post)
     
     return render_template('post.html', post=post)
@@ -109,6 +130,14 @@ def blog_post(slug):
 def serve_game_files(filename):
     """Serve game files (JS modules)"""
     response = send_from_directory('src/game', filename)
+    if filename.endswith('.js'):
+        response.headers['Content-Type'] = 'application/javascript'
+    return response
+
+@app.route('/aiml/<path:filename>')
+def serve_aiml_files(filename):
+    """Serve AI/ML interactive demo files"""
+    response = send_from_directory('src/aiml', filename)
     if filename.endswith('.js'):
         response.headers['Content-Type'] = 'application/javascript'
     return response

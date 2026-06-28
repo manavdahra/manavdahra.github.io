@@ -50,12 +50,12 @@
             <article class="post-card">
                 <div class="post-category">AI/ML</div>
                 <h3 class="post-title">
-                    <a href="blog/aimlj-2-linear-regression/index.html">Linear regression in Depth</a>
+                    <a href="blog/aimlj-2-hypothesis/index.html">Hypothesis generation and Maximum Likelihood Estimation</a>
                 </h3>
-                <p class="post-excerpt">Baby steps</p>
+                <p class="post-excerpt">The guiding principle to follow for building models</p>
                 <div class="post-meta">
                     <span class="post-date">June 27, 2026</span>
-                    <span class="post-read-time">1 hour</span>
+                    <span class="post-read-time">15 min read</span>
                 </div>
                 <div class="post-tags">
                     
@@ -63,7 +63,7 @@
                     
                     <span class="tag">ml</span>
                     
-                    <span class="tag">linear regression</span>
+                    <span class="tag">ml-principle</span>
                     
                 </div>
             </article>
@@ -182,9 +182,38 @@
         onload="renderMathInElement(document.body, {
             delimiters: [
                 {left: '$$', right: '$$', display: true},
-                {left: '$', right: '$', display: false}
+                {left: '$', right: '$', display: false},
+                {left: '\\begin{align}', right: '\\end{align}', display: true},
+                {left: '\\begin{align*}', right: '\\end{align*}', display: true},
+                {left: '\\begin{equation}', right: '\\end{equation}', display: true},
+                {left: '\\begin{equation*}', right: '\\end{equation*}', display: true},
+                {left: '\\begin{gather}', right: '\\end{gather}', display: true},
+                {left: '\\begin{gather*}', right: '\\end{gather*}', display: true}
             ],
             throwOnError: false
-        });"></script>
+        });">
+    </script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                background: '#213636',
+                primaryColor: '#2a4444',
+                primaryTextColor: '#bdb76b',
+                primaryBorderColor: '#bdb76b',
+                lineColor: '#bdb76b',
+                secondaryColor: '#1a2d2d',
+                tertiaryColor: '#2a4444',
+                edgeLabelBackground: '#213636',
+                clusterBkg: '#1a2d2d',
+                titleColor: '#bdb76b',
+                nodeTextColor: '#bdb76b',
+                attributeBackgroundColorOdd: '#2a4444',
+                attributeBackgroundColorEven: '#1a2d2d',
+            }
+        });
+    </script>
 </body>
 </html>
