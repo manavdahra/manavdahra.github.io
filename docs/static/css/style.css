@@ -495,7 +495,11 @@ details[open] summary {
     margin-bottom: 0.5rem;
 }
 
-details p {
+details p,
+details p ol,
+details p ul,
+details p ol li,
+details p ul li {
     font-size: 0.82rem;
     color: var(--text-secondary);
     line-height: 1.6;

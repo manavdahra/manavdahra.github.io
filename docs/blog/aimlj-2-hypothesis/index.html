@@ -66,19 +66,19 @@ $$</p>
     h_\theta: \mathbb{R}^m \rightarrow \mathbb{R}^n \qquad \text{(hypothesis function $h_\theta \approx f$)}
 $$</p>
 <h3>Types of Learning</h3>
-<p>Depending upon the problem we are trying to solve, the algorithm for training a model can vary. In some cases, we might have the output data to match up with our hypothesis, and in other cases, we might not have it completely. This leads us to the different types of learning in machine learning. The three main types of learning are supervised learning, unsupervised learning, and semi-supervised learning.</p>
+<p>Depending upon the problem we are trying to solve, the algorithm for training a model can vary. In some cases, we might have the output data to match up with our hypothesis, and in other cases, we might not have it completely. This leads us to the different types of learning in machine learning. The three main types of learning are supervised learning, unsupervised learning, and reinforcement learning.</p>
 <div class="mermaid">graph LR
     A{{"Types of Learning"}} --> B("Supervised Learning")
     A --> C("Unsupervised Learning")
-    A --> D("Semi-supervised Learning")
+    A --> D("Reinforcement Learning")
 </div>
 
 <ol>
 <li><strong>Supervised learning</strong> — In supervised learning, we have a dataset that contains both input features and output labels. The goal is to learn a mapping from the input features to the output labels. This is the most common type of learning in machine learning.</li>
 <li><strong>Unsupervised learning</strong> — In unsupervised learning, we have a dataset that contains only input features and no output labels. The goal is to learn the underlying structure of the data. This type of learning is less common than supervised learning, but it is still an important area of research.</li>
-<li><strong>Semi-supervised learning</strong> — In semi-supervised learning, we have a dataset that contains both input features and output labels, but the output labels are only available for a subset of the data. The goal is to learn a mapping from the input features to the output labels using both the labeled and unlabeled data. This type of learning is less common than supervised and unsupervised learning, but it is still an important area of research. I will touch upon this type of learning in a future post, but for now, we will focus on supervised and unsupervised learning.</li>
+<li><strong>Reinforcement learning</strong> — In reinforcement learning, there are no labeled input-output pairs. Instead, an agent learns by interacting with an environment and receiving feedback in the form of rewards or penalties. The goal is to learn a policy that maximizes the cumulative reward over time. This type of learning is widely used in robotics, game playing, and sequential decision-making problems. I will touch upon this type of learning in a future post, but for now, we will focus on supervised and unsupervised learning.</li>
 </ol>
-<h3>Training loop — optimizing the model parameters:</h3>
+<h3>Training loop — optimizing the model parameters</h3>
 <p>The training loop is the process of iteratively updating the model parameters to minimize the loss function. The loss function measures how well the model's predictions match with the actual output data. As we minimize the loss function by adjusting the model parameters, we move closer to a model that accurately represents the underlying data distribution. The exact details of input features, labels, optimisation algorithms, loss functions can vary depending on the problem we are trying to solve, but the overall idea remains the same. We want to find a set of model parameters that minimize the loss function and produce accurate predictions on unseen data.</p>
 <div>
     <canvas id="trainingLoopCanvas" width="710" height="300" style="max-width:100%;display:block;margin:2rem auto;"></canvas>
@@ -95,16 +95,22 @@ $$</p>
 <p>Note: Typically, we first collect a dataset from the real world, and then we split it into a training set and a testing set. The training set is then used to train the model, while the testing set is used to evaluate its performance. </p>
 </blockquote>
 <p>We do the splitting of the dataset because we say that the process of sampling the dataset from the real world is a random process, and we want to make sure that our model is not overfitting to the training data. By keeping the testing data separate, we can evaluate the model's performance on unseen data and get a better estimate of how well it will perform in the real world.</p>
-<h3>Maximum Likelihood Estimation (MLE) and deriving the loss function:</h3>
+<h3>Maximum Likelihood Estimation (MLE) and deriving the loss function</h3>
 <p>Now, a natural question arises: What is the loss function and how do we learn the parameters $\theta$ of our hypothesis function $h_\theta$? The answer lies in the concept of <strong>Maximum Likelihood Estimation (MLE)</strong> and <strong>Gradient Descent algorithm</strong>.</p>
-<p>Lets take the pair of $x_i, y_i$ again, if we represent $p(y_i \mid x_i;\theta)$ as the probability of observing the output variable $y_i$ given the input features $x_i$ and the parameters $\theta$, then we can say that our goal is to find a set of parameters $\theta$ that maximizes this probability for all data points in our dataset. This method of maximizing the input-output probability by tweaking parameters is called <strong>Maximizing the likelihood estimation (MLE)</strong>.</p>
-<p>Looks like some weird obscure definition right ? What is the advantage of this approach? </p>
+<p>What do I mean by Likelihood? In statistics, the likelihood function is a function of the parameters of a statistical model that describes the probability of observing the given data. In other words, it measures how likely it is to observe the data given a set of parameters.</p>
+<p>If $x_i$ is the input features and $y_i$ is the corresponding output variable for the $i$-th data point, we can express the likelihood of the parameters $\theta$ given the data as:
+\begin{align*}
+    L(\theta) &= p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta)
+\end{align*}</p>
+<p>It can be seen that maximizing the likelihood function is equivalent to finding the parameters $\theta$ that make the observed data most probable. In other words, we want to find the parameters that maximize the probability of observing the data we have collected.
+\begin{align*}
+    \hat{\theta} &= \arg\max_\theta L(\theta) = \arg\max_\theta \, p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta)
+\end{align*}</p>
+<p>This method of maximizing the input-output probability by tweaking parameters is called <strong>Maximum Likelihood Estimation (MLE)</strong>.</p>
+<p>But why bother ourselves with this formulation? The key advantage is that it provides a principled way of deriving the loss function for our model. Moreover, maximizing the likelihood of the observed data is equivalent to minimizing the negative log-likelihood (NLL), which is the loss function used in many machine learning algorithms.</p>
+<p>Before I proceed further, I want to highlight one <strong>key assumption</strong> that we make in MLE:</p>
 <blockquote>
-<p>because, as you shall see, this leads us to a principled way of deriving the loss function for our model. And not only that, maximizing the likelihood of the observed data is equivalent to minimizing the negative log-likelihood (NLL), which is the loss function used in many machine learning algorithms.</p>
-</blockquote>
-<p>Before I proceed further, I want to highlight one <strong>key assumption</strong> that we make in MLE: </p>
-<blockquote>
-<p>the data points are independent and identically distributed (i.i.d). This means that the probability of observing the output variable $y_i$ given the input features $x_i$ and the parameters $\theta$ is independent of the other data points in the dataset. </p>
+<p><strong>Assumption (i.i.d.):</strong> The observations $(x_i, y_i)$ are drawn independently from the same underlying distribution. This means the conditional probability $p(y_i \mid x_i; \theta)$ for each data point does not depend on any other data point in the dataset.</p>
 </blockquote>
 <p>So the likelihood of the entire dataset can be expressed as:
 $$
@@ -142,21 +148,26 @@ $$</p>
 <p>For the entire dataset, the log-likelihood function can be expressed as:
 \begin{align*}
     \log p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta) &= \sum_{i=1}^{N} \log p(y_i \mid x_i;\theta) \\
-    &= -\frac{N}{2} \log(2\pi\sigma^2) - \frac{1}{2\sigma^2} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2
+    &= -\frac{N}{2} \log(2\pi\sigma^2) - \frac{1}{2\sigma^2} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2\\
+    &= N \left( -\frac{1}{2} \log(2\pi\sigma^2) - \frac{1}{2\sigma^2} \frac{1}{N} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2 \right)
 \end{align*}</p>
 <p>Taking $\arg\max$ with respect to $\theta$, we can see that maximizing the log-likelihood function is equivalent to minimizing the sum of squared errors (SSE) between the predicted and actual output values. This leads us to the loss function for linear regression, which is the mean squared error (MSE):
 \begin{align*}
-    \ell(\theta) &= \arg \max_\theta \log p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta) \\
-    &= \arg \max_\theta \left( \underbrace{-\frac{N}{2} \log(2\pi\sigma^2)}_{constant} - \underbrace{\frac{1}{2\sigma^2} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2}_{dependent\ on\ \theta} \right) \\
-    &= \arg \min_\theta \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2
+    \hat{\theta} &= \arg \max_\theta \log p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta) \\
+    &= N \arg \max_\theta \left( \underbrace{-\frac{1}{2} \log(2\pi\sigma^2)}_{constant} - \underbrace{\frac{1}{2\sigma^2} \frac{1}{N} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2}_{dependent\ on\ \theta} \right) \\
+    &= \arg \min_\theta \frac{1}{N} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2
 \end{align*}</p>
-<p>Note that $\arg \min_\theta \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2$ is the same as $\arg \min_\theta \frac{1}{N} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2$, which is the mean squared error (MSE) loss function (ignoring the constant factor $\frac{1}{N}$)!</p>
+<blockquote>
+<p>Note that $\arg \min_\theta \frac{1}{N} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2$ is the familiar mean squared error (MSE) loss function used in linear regression. We see that it is not just pulled out of a hat, but rather derived from the underlying assumption of the model and the MLE framework.</p>
+</blockquote>
 <div>
 <details>
     <summary>More thoughts on this result:</summary>
     <p>
-        1. The constant term $-\frac{N}{2} \log(2\pi\sigma^2)$ does not depend on $\theta$, so it does not affect the optimization problem. Therefore, we can ignore it when deriving the loss function.
-        2. The minus sign in front of the second term converts the maximization problem into a minimization problem, which is where we get the gradient descent formulation.
+        <ol>
+            <li> The constant term $-\frac{1}{2} \log(2\pi\sigma^2)$ does not depend on $\theta$, so it does not affect the optimization problem. Therefore, we can ignore it when deriving the loss function.</li>
+            <li> The minus sign in front of the second term converts the maximization problem into a minimization problem, which is where we get the gradient descent formulation.</li>
+        </ol>
     </p>
 </details>
 </div>

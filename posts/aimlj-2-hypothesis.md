@@ -15,20 +15,20 @@ $$
 
 ### Types of Learning
 
-Depending upon the problem we are trying to solve, the algorithm for training a model can vary. In some cases, we might have the output data to match up with our hypothesis, and in other cases, we might not have it completely. This leads us to the different types of learning in machine learning. The three main types of learning are supervised learning, unsupervised learning, and semi-supervised learning.
+Depending upon the problem we are trying to solve, the algorithm for training a model can vary. In some cases, we might have the output data to match up with our hypothesis, and in other cases, we might not have it completely. This leads us to the different types of learning in machine learning. The three main types of learning are supervised learning, unsupervised learning, and reinforcement learning.
 
 ```mermaid
 graph LR
     A{{"Types of Learning"}} --> B("Supervised Learning")
     A --> C("Unsupervised Learning")
-    A --> D("Semi-supervised Learning")
+    A --> D("Reinforcement Learning")
 ```
 
 1. **Supervised learning** — In supervised learning, we have a dataset that contains both input features and output labels. The goal is to learn a mapping from the input features to the output labels. This is the most common type of learning in machine learning.
 2. **Unsupervised learning** — In unsupervised learning, we have a dataset that contains only input features and no output labels. The goal is to learn the underlying structure of the data. This type of learning is less common than supervised learning, but it is still an important area of research.
-3. **Semi-supervised learning** — In semi-supervised learning, we have a dataset that contains both input features and output labels, but the output labels are only available for a subset of the data. The goal is to learn a mapping from the input features to the output labels using both the labeled and unlabeled data. This type of learning is less common than supervised and unsupervised learning, but it is still an important area of research. I will touch upon this type of learning in a future post, but for now, we will focus on supervised and unsupervised learning.
+3. **Reinforcement learning** — In reinforcement learning, there are no labeled input-output pairs. Instead, an agent learns by interacting with an environment and receiving feedback in the form of rewards or penalties. The goal is to learn a policy that maximizes the cumulative reward over time. This type of learning is widely used in robotics, game playing, and sequential decision-making problems. I will touch upon this type of learning in a future post, but for now, we will focus on supervised and unsupervised learning.
 
-### Training loop — optimizing the model parameters:
+### Training loop — optimizing the model parameters
 
 The training loop is the process of iteratively updating the model parameters to minimize the loss function. The loss function measures how well the model's predictions match with the actual output data. As we minimize the loss function by adjusting the model parameters, we move closer to a model that accurately represents the underlying data distribution. The exact details of input features, labels, optimisation algorithms, loss functions can vary depending on the problem we are trying to solve, but the overall idea remains the same. We want to find a set of model parameters that minimize the loss function and produce accurate predictions on unseen data.
 
@@ -47,18 +47,29 @@ Here's a breakdown of the steps in the training loop:
 
 We do the splitting of the dataset because we say that the process of sampling the dataset from the real world is a random process, and we want to make sure that our model is not overfitting to the training data. By keeping the testing data separate, we can evaluate the model's performance on unseen data and get a better estimate of how well it will perform in the real world.
 
-### Maximum Likelihood Estimation (MLE) and deriving the loss function:
+### Maximum Likelihood Estimation (MLE) and deriving the loss function
 
 Now, a natural question arises: What is the loss function and how do we learn the parameters $\theta$ of our hypothesis function $h_\theta$? The answer lies in the concept of **Maximum Likelihood Estimation (MLE)** and **Gradient Descent algorithm**.
 
-Lets take the pair of $x_i, y_i$ again, if we represent $p(y_i \mid x_i;\theta)$ as the probability of observing the output variable $y_i$ given the input features $x_i$ and the parameters $\theta$, then we can say that our goal is to find a set of parameters $\theta$ that maximizes this probability for all data points in our dataset. This method of maximizing the input-output probability by tweaking parameters is called **Maximizing the likelihood estimation (MLE)**.
+What do I mean by Likelihood? In statistics, the likelihood function is a function of the parameters of a statistical model that describes the probability of observing the given data. In other words, it measures how likely it is to observe the data given a set of parameters.
 
-Looks like some weird obscure definition right ? What is the advantage of this approach? 
-> because, as you shall see, this leads us to a principled way of deriving the loss function for our model. And not only that, maximizing the likelihood of the observed data is equivalent to minimizing the negative log-likelihood (NLL), which is the loss function used in many machine learning algorithms.
+If $x_i$ is the input features and $y_i$ is the corresponding output variable for the $i$-th data point, we can express the likelihood of the parameters $\theta$ given the data as:
+\begin{align*}
+    L(\theta) &= p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta)
+\end{align*}
 
-Before I proceed further, I want to highlight one **key assumption** that we make in MLE: 
+It can be seen that maximizing the likelihood function is equivalent to finding the parameters $\theta$ that make the observed data most probable. In other words, we want to find the parameters that maximize the probability of observing the data we have collected.
+\begin{align*}
+    \hat{\theta} &= \arg\max_\theta L(\theta) = \arg\max_\theta \, p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta)
+\end{align*}
 
->the data points are independent and identically distributed (i.i.d). This means that the probability of observing the output variable $y_i$ given the input features $x_i$ and the parameters $\theta$ is independent of the other data points in the dataset. 
+This method of maximizing the input-output probability by tweaking parameters is called **Maximum Likelihood Estimation (MLE)**.
+
+But why bother ourselves with this formulation? The key advantage is that it provides a principled way of deriving the loss function for our model. Moreover, maximizing the likelihood of the observed data is equivalent to minimizing the negative log-likelihood (NLL), which is the loss function used in many machine learning algorithms.
+
+Before I proceed further, I want to highlight one **key assumption** that we make in MLE:
+
+> **Assumption (i.i.d.):** The observations $(x_i, y_i)$ are drawn independently from the same underlying distribution. This means the conditional probability $p(y_i \mid x_i; \theta)$ for each data point does not depend on any other data point in the dataset.
 
 So the likelihood of the entire dataset can be expressed as:
 $$
@@ -82,12 +93,12 @@ Now, since we want to maximize this likelihood, we can take $\log$ of this expre
 </div>
 
 
-This leads us to the log-likelihood function:
+This leads us to the log-likelihood function, where $\hat{\theta}$ is the set of parameters that maximizes the log-likelihood function:
 $$
     \hat{\theta} = \arg\max_\theta \, \log p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta) = \arg\max_\theta \, \sum_{i=1}^{N} \log p(y_i \mid x_i;\theta)
 $$
 
-Now, lets see how this works in practice. Consider the case of linear regression, where we assume that the output variable $y_i$ is linearly related to the input features $x_i$ through the hypothesis function $y_i = h_\theta(x_i) = \theta^T x_i$ and $\epsilon_i \sim \mathcal{N}(0, \sigma^2)$ as the irreducible error term that captures the noise in the data. We can express this relationship as:
+Now, lets see how this works in practice. Consider the case of linear regression, where we assume that the output variable $y_i$ is linearly related to the input features $x_i$ through the hypothesis function $y_i = h_\theta(x_i) = \theta^T x_i$ and $\epsilon_i \sim \mathcal{N}(0, \sigma^2)$ as the noise term that captures the random error in the data. We can express this relationship as:
 $$
     y = X\theta + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2)
 $$
@@ -107,26 +118,15 @@ For the entire dataset, the log-likelihood function can be expressed as:
 
 Taking $\arg\max$ with respect to $\theta$, we can see that maximizing the log-likelihood function is equivalent to minimizing the sum of squared errors (SSE) between the predicted and actual output values. This leads us to the loss function for linear regression, which is the mean squared error (MSE):
 \begin{align*}
-    \ell(\theta) &= \arg \max_\theta \log p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta) \\
+    \hat{\theta} &= \arg \max_\theta \log p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta) \\
     &= \arg \max_\theta \left( \underbrace{-\frac{N}{2} \log(2\pi\sigma^2)}_{constant} - \underbrace{\frac{1}{2\sigma^2} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2}_{dependent\ on\ \theta} \right) \\
-    &= \arg \min_\theta \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2
+    &= \arg \min_\theta \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2 \qquad \text{(drop constants $\frac{N}{2}\log(2\pi\sigma^2)$ and $\frac{1}{2\sigma^2}$)} \\
+    &= \arg \min_\theta \frac{1}{N} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2 \qquad \text{(dividing by $N > 0$ does not change $\arg\min$)}
 \end{align*}
 
-Note that $\arg \min_\theta \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2$ is the same as $\arg \min_\theta \frac{1}{N} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2$, which is the mean squared error (MSE) loss function (ignoring the constant factor $\frac{1}{N}$)!
-
-<div>
-<details>
-    <summary>More thoughts on this result:</summary>
-    <p>
-        1. The constant term $-\frac{N}{2} \log(2\pi\sigma^2)$ does not depend on $\theta$, so it does not affect the optimization problem. Therefore, we can ignore it when deriving the loss function.
-        2. The minus sign in front of the second term converts the maximization problem into a minimization problem, which is where we get the gradient descent formulation.
-    </p>
-</details>
-</div>
+So Maximizing the log-likelihood function is equivalent to minimizing the mean squared error (MSE) loss function $\frac{1}{N} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2$, which is a common loss function used in linear regression!
 
 As we can see, the importance of relying on hypothesis formulation and using MLE as the principled framework for deriving loss functions cannot be overstated. This is just one example of how MLE can be used to derive loss functions for different types of models in machine learning. 
 
 In the subsequent posts, we will explore how MLE can be used to derive loss functions for other types of models, such as logistic regression and neural networks. So, stay tuned for more insights into the fascinating world of machine learning!
-
-Hope you enjoyed this post! If you have any questions or feedback, feel free to reach out to me. I would love to hear from you!
 
