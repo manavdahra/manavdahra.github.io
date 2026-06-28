@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Machine learning - Part I - Manav Dahra</title>
+    <title>Intro to Machine learning - Manav Dahra</title>
     <link rel="stylesheet" href="../../static/css/style.css">
     <link rel="stylesheet" href="../../static/css/pygments.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,8 +34,8 @@
                 <span class="post-category">AI/ML</span>
                 <span class="post-date">June 24, 2026</span>
             </div>
-            <h1 class="post-title-large">Machine learning - Part I</h1>
-            <p class="post-excerpt-large">My journey of learning AI/ML</p>
+            <h1 class="post-title-large">Intro to Machine learning</h1>
+            <p class="post-excerpt-large">The right way to approach ML and why it is important to learn the Math</p>
             <div class="post-meta-bottom">
                 <span class="post-read-time">15 min read</span>
                 <div class="post-tags-large">
@@ -143,9 +143,38 @@
         onload="renderMathInElement(document.body, {
             delimiters: [
                 {left: '$$', right: '$$', display: true},
-                {left: '$', right: '$', display: false}
+                {left: '$', right: '$', display: false},
+                {left: '\\begin{align}', right: '\\end{align}', display: true},
+                {left: '\\begin{align*}', right: '\\end{align*}', display: true},
+                {left: '\\begin{equation}', right: '\\end{equation}', display: true},
+                {left: '\\begin{equation*}', right: '\\end{equation*}', display: true},
+                {left: '\\begin{gather}', right: '\\end{gather}', display: true},
+                {left: '\\begin{gather*}', right: '\\end{gather*}', display: true}
             ],
             throwOnError: false
-        });"></script>
+        });">
+    </script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                background: '#213636',
+                primaryColor: '#2a4444',
+                primaryTextColor: '#bdb76b',
+                primaryBorderColor: '#bdb76b',
+                lineColor: '#bdb76b',
+                secondaryColor: '#1a2d2d',
+                tertiaryColor: '#2a4444',
+                edgeLabelBackground: '#213636',
+                clusterBkg: '#1a2d2d',
+                titleColor: '#bdb76b',
+                nodeTextColor: '#bdb76b',
+                attributeBackgroundColorOdd: '#2a4444',
+                attributeBackgroundColorEven: '#1a2d2d',
+            }
+        });
+    </script>
 </body>
 </html>

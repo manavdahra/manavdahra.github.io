@@ -2,8 +2,8 @@
 :root {
     --primary-color: #bdb76b;
     --secondary-color: #828631;
-    --text-primary: #989285;
-    --text-secondary: #7a7568;
+    --text-primary: #c8c4b8;
+    --text-secondary: #a09890;
     --bg-primary: #213636;
     --bg-secondary: #1a2d2d;
     --bg-tertiary: #2a4444;
@@ -459,6 +459,47 @@ body {
 .blog-content a:hover {
     text-decoration: underline;
     color: var(--secondary-color);
+}
+
+.katex,
+.katex-display {
+    color: var(--primary-color);
+}
+
+.mermaid {
+    display: flex;
+    justify-content: center;
+    margin: 2rem 0;
+}
+
+.mermaid svg {
+    max-width: 100%;
+}
+
+details {
+    margin: 1rem 0;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    background: var(--bg-secondary);
+}
+
+details summary {
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    user-select: none;
+}
+
+details[open] summary {
+    margin-bottom: 0.5rem;
+}
+
+details p {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
 }
 
 .post-footer {

@@ -50,9 +50,30 @@
             <article class="post-card">
                 <div class="post-category">AI/ML</div>
                 <h3 class="post-title">
-                    <a href="blog/aimlj-1/index.html">Machine learning - Part I</a>
+                    <a href="blog/aimlj-2-hypothesis/index.html">Hypothesis generation and Maximum Likelihood Estimation</a>
                 </h3>
-                <p class="post-excerpt">My journey of learning AI/ML</p>
+                <p class="post-excerpt">The guiding principle to follow for building models</p>
+                <div class="post-meta">
+                    <span class="post-date">June 27, 2026</span>
+                    <span class="post-read-time">15 min read</span>
+                </div>
+                <div class="post-tags">
+                    
+                    <span class="tag">ai</span>
+                    
+                    <span class="tag">ml</span>
+                    
+                    <span class="tag">ml-principle</span>
+                    
+                </div>
+            </article>
+            
+            <article class="post-card">
+                <div class="post-category">AI/ML</div>
+                <h3 class="post-title">
+                    <a href="blog/aimlj-1/index.html">Intro to Machine learning</a>
+                </h3>
+                <p class="post-excerpt">The right way to approach ML and why it is important to learn the Math</p>
                 <div class="post-meta">
                     <span class="post-date">June 24, 2026</span>
                     <span class="post-read-time">15 min read</span>
@@ -85,27 +106,6 @@
                     <span class="tag">three.js</span>
                     
                     <span class="tag">cannon.js</span>
-                    
-                </div>
-            </article>
-            
-            <article class="post-card">
-                <div class="post-category">Software Engineering</div>
-                <h3 class="post-title">
-                    <a href="blog/understanding-dynamodb-design-patterns/index.html">Understanding DynamoDB: Design Patterns for Scale</a>
-                </h3>
-                <p class="post-excerpt">Deep dive into DynamoDB design patterns learned from building systems that serve millions of users.</p>
-                <div class="post-meta">
-                    <span class="post-date">March 05, 2026</span>
-                    <span class="post-read-time">8 min read</span>
-                </div>
-                <div class="post-tags">
-                    
-                    <span class="tag">distributed-systems</span>
-                    
-                    <span class="tag">databases</span>
-                    
-                    <span class="tag">aws</span>
                     
                 </div>
             </article>
@@ -182,9 +182,38 @@
         onload="renderMathInElement(document.body, {
             delimiters: [
                 {left: '$$', right: '$$', display: true},
-                {left: '$', right: '$', display: false}
+                {left: '$', right: '$', display: false},
+                {left: '\\begin{align}', right: '\\end{align}', display: true},
+                {left: '\\begin{align*}', right: '\\end{align*}', display: true},
+                {left: '\\begin{equation}', right: '\\end{equation}', display: true},
+                {left: '\\begin{equation*}', right: '\\end{equation*}', display: true},
+                {left: '\\begin{gather}', right: '\\end{gather}', display: true},
+                {left: '\\begin{gather*}', right: '\\end{gather*}', display: true}
             ],
             throwOnError: false
-        });"></script>
+        });">
+    </script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                background: '#213636',
+                primaryColor: '#2a4444',
+                primaryTextColor: '#bdb76b',
+                primaryBorderColor: '#bdb76b',
+                lineColor: '#bdb76b',
+                secondaryColor: '#1a2d2d',
+                tertiaryColor: '#2a4444',
+                edgeLabelBackground: '#213636',
+                clusterBkg: '#1a2d2d',
+                titleColor: '#bdb76b',
+                nodeTextColor: '#bdb76b',
+                attributeBackgroundColorOdd: '#2a4444',
+                attributeBackgroundColorEven: '#1a2d2d',
+            }
+        });
+    </script>
 </body>
 </html>

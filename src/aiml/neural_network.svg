@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 320" style="max-width:100%;display:block;margin:2rem auto;font-family:Inter,sans-serif;">
+  <rect width="560" height="320" rx="10" fill="#1a2d2d"/>
+
+  <!-- Input → Hidden connections -->
+  <g stroke="#3a5454" stroke-width="1.2" opacity="0.8">
+    <line x1="90" y1="80"  x2="270" y2="57"/>
+    <line x1="90" y1="80"  x2="270" y2="123"/>
+    <line x1="90" y1="80"  x2="270" y2="189"/>
+    <line x1="90" y1="80"  x2="270" y2="255"/>
+    <line x1="90" y1="160" x2="270" y2="57"/>
+    <line x1="90" y1="160" x2="270" y2="123"/>
+    <line x1="90" y1="160" x2="270" y2="189"/>
+    <line x1="90" y1="160" x2="270" y2="255"/>
+    <line x1="90" y1="240" x2="270" y2="57"/>
+    <line x1="90" y1="240" x2="270" y2="123"/>
+    <line x1="90" y1="240" x2="270" y2="189"/>
+    <line x1="90" y1="240" x2="270" y2="255"/>
+  </g>
+
+  <!-- Hidden → Output connections -->
+  <g stroke="#3a5454" stroke-width="1.2" opacity="0.8">
+    <line x1="270" y1="57"  x2="450" y2="120"/>
+    <line x1="270" y1="57"  x2="450" y2="200"/>
+    <line x1="270" y1="123" x2="450" y2="120"/>
+    <line x1="270" y1="123" x2="450" y2="200"/>
+    <line x1="270" y1="189" x2="450" y2="120"/>
+    <line x1="270" y1="189" x2="450" y2="200"/>
+    <line x1="270" y1="255" x2="450" y2="120"/>
+    <line x1="270" y1="255" x2="450" y2="200"/>
+  </g>
+
+  <!-- Input layer nodes -->
+  <g fill="#2a4444" stroke="#bdb76b" stroke-width="1.8">
+    <circle cx="90" cy="80"  r="22"/>
+    <circle cx="90" cy="160" r="22"/>
+    <circle cx="90" cy="240" r="22"/>
+  </g>
+  <g fill="#bdb76b" font-size="13" text-anchor="middle" dominant-baseline="central">
+    <text x="90" y="80">x&#x2081;</text>
+    <text x="90" y="160">x&#x2082;</text>
+    <text x="90" y="240">x&#x2083;</text>
+  </g>
+
+  <!-- Hidden layer nodes -->
+  <g fill="#2a4444" stroke="#bdb76b" stroke-width="1.8">
+    <circle cx="270" cy="57"  r="22"/>
+    <circle cx="270" cy="123" r="22"/>
+    <circle cx="270" cy="189" r="22"/>
+    <circle cx="270" cy="255" r="22"/>
+  </g>
+  <g fill="#bdb76b" font-size="13" text-anchor="middle" dominant-baseline="central">
+    <text x="270" y="57">h&#x2081;</text>
+    <text x="270" y="123">h&#x2082;</text>
+    <text x="270" y="189">h&#x2083;</text>
+    <text x="270" y="255">h&#x2084;</text>
+  </g>
+
+  <!-- Output layer nodes -->
+  <g fill="#2a4444" stroke="#bdb76b" stroke-width="1.8">
+    <circle cx="450" cy="120" r="22"/>
+    <circle cx="450" cy="200" r="22"/>
+  </g>
+  <g fill="#bdb76b" font-size="13" text-anchor="middle" dominant-baseline="central">
+    <text x="450" y="120">&#x0177;&#x2081;</text>
+    <text x="450" y="200">&#x0177;&#x2082;</text>
+  </g>
+
+  <!-- Layer labels -->
+  <g fill="#7a7568" font-size="12" text-anchor="middle">
+    <text x="90"  y="295">Input Layer</text>
+    <text x="270" y="295">Hidden Layer</text>
+    <text x="450" y="295">Output Layer</text>
+  </g>
+
+  <text x="280" y="18" fill="#bdb76b" font-size="13" text-anchor="middle" opacity="0.7">Neural Network &#x2014; h&#x03B8;(x)</text>
+</svg>
