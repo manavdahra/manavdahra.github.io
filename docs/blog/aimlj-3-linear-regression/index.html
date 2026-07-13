@@ -44,7 +44,7 @@
                     
                     <span class="tag">ml</span>
                     
-                    <span class="tag">ml-principle</span>
+                    <span class="tag">linear-regression</span>
                     
                     <span class="tag">math</span>
                     
@@ -120,7 +120,7 @@
     X^T X \theta &= X^T y\\
     \hat{\theta} &= (X^T X)^{-1} X^T y
 \end{align*}</p>
-<h3>Example:</h3>
+<h3>Working Example:</h3>
 <p>Here I generate synthetic dataset for a 7th degree polynomial and fit a linear regression model to it using the iterative gradient descent method. The dataset consists of 1000 samples with 7 features, and the target variable is generated using a linear function with some added noise. I am using seed 42 to ensure reproducibility of the results. The coefficients of the linear function are randomly generated from a normal distribution with mean 0 and standard deviation 10.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">t</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
@@ -145,7 +145,10 @@
 </code></pre></div>
 
 <p>And here's how the dataset looks like when plotted:</p>
-<p><img src="../../aiml/linear-regression/dataset.png" alt="Dataset" width="300"/></p>
+<div style="text-align:center;">
+<img src="../../aiml/linear-regression/dataset.png" alt="Dataset" width="300"/>
+</div>
+
 <p>Next, we build a linear regression model and initialize its parameters $\theta$ randomly using <a href="https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.kaiming_uniform_">Kaiming Uniform initialisation</a>.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linear</span>
@@ -276,8 +279,19 @@ which is the ratio of the residual sum of squares ($SS_{res} = \sum_i (y_i - \ha
 <span class="n">loss_curves_plot</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </code></pre></div>
 
-<p>This yields the following loss curves for the training and validation datasets:
-<img src="../../aiml/linear-regression/loss_curves.png" alt="Loss Curves" width="600"/></p>
+<h3>Results:</h3>
+<p>This yields the following loss curves for the training and validation datasets:</p>
+<div style="text-align:center;">
+<img src="../../aiml/linear-regression/loss_curves.png" alt="Loss Curves" width="700"/>
+</div>
+
+<div style="text-align:center;">
+<img src="../../aiml/linear-regression/model_fit.png" alt="Model Fit" width="700"/>
+</div>
+
+<p>As can be seen from the loss curves, the model is able to fit the training data well and generalize to the validation data, as evidenced by the low MSE loss and high $R^2$ score on the validation dataset. The model is able to capture the underlying linear relationship between the independent and dependent variables while ignoring the noise in the data, as evidenced by the low MSE loss and high $R^2$ score on the validation dataset.</p>
+<h3>Conclusion:</h3>
+<p>And there you have it! We have successfully derived the MSE loss function for linear regression using MLE and trained a linear regression model on a synthetic dataset. In the next post, we will explore how to extend this approach to logistic regression, which is used for binary classification problems. Stay tuned for more insights into the fascinating world of machine learning!</p>
         </div>
     </div>
     
