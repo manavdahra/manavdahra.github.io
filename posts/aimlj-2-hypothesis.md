@@ -1,6 +1,12 @@
+Before I explain the concept of Maximum Likelihood Estimation (MLE), I want to first introduce the notion of a hypothesis function $h_\theta$ in machine learning. The hypothesis function is a mathematical representation of the model that we are trying to learn from the data. It takes in input features and produces an output prediction based on the learned parameters $\theta$.
+
+
 ## Notion of Hypothesis $h_\theta$
 
-When working with ML, the name of the game is to come up with a model that can accurately predict a set of outputs, for a set of inputs which the model has not seen before. 
+<div>
+    <canvas id="hypothesisFunctionCanvas" width="710" height="300" style="max-width:100%;display:block;margin:2rem auto;"></canvas>
+    <script src="/aiml/hypothesis-function.js"></script>
+</div>
 
 Assume that there exists a dataset with $N$ data points, where $x_i \in \mathbb{R}^m$ is a vector of input features for the $i$-th data point, and $y_i \in \mathbb{R}^n$ is the corresponding output variable, mapped by some underlying function $f$. Then,
 $$
@@ -45,7 +51,7 @@ Here's a breakdown of the steps in the training loop:
 
 > Note: Typically, we first collect a dataset from the real world, and then we split it into a training set and a testing set. The training set is then used to train the model, while the testing set is used to evaluate its performance. 
 
-We do the splitting of the dataset because we say that the process of sampling the dataset from the real world is a random process, and we want to make sure that our model is not overfitting to the training data. By keeping the testing data separate, we can evaluate the model's performance on unseen data and get a better estimate of how well it will perform in the real world.
+We do the splitting of the dataset to get an unbiased estimate of how well the model generalizes to unseen data. By keeping the testing set separate and never using it during training, we can evaluate the model's true generalization performance. This also allows us to *detect* overfitting — if the model performs well on the training set but poorly on the test set, it is a sign that the model has overfit to the training data. However, the split itself does not prevent overfitting; addressing overfitting requires other techniques such as regularization, early stopping, or collecting more data.
 
 ### Maximum Likelihood Estimation (MLE) and deriving the loss function
 
@@ -81,7 +87,10 @@ Now, since we want to maximize this likelihood, we can take $\log$ of this expre
 <details>
     <summary>Why take the logarithm? Click to expand</summary>
     <p>
-    Maximizing the product of probabilities can be computationally expensive, especially when dealing with large datasets. 
+    Two main reasons for taking the logarithm of the likelihood function are:
+    1. **Numerical stability** — The likelihood function can be very small for large datasets, which can lead to numerical underflow when multiplying many probabilities together. Taking the logarithm of the likelihood function transforms the product into a sum, which is more numerically stable and easier to compute.
+    2. **Computational efficiency** — Maximizing the product of probabilities can be computationally expensive, especially when dealing with large datasets. Taking the logarithm of the likelihood function transforms the product into a sum, which is computationally more efficient and easier to optimize.
+    
     $$
         \hat{\theta} = \arg\max_\theta \, p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta) = \arg\max_\theta \, \prod_{i=1}^{N} p(y_i \mid x_i;\theta)
     $$
@@ -94,39 +103,10 @@ Now, since we want to maximize this likelihood, we can take $\log$ of this expre
 
 
 This leads us to the log-likelihood function, where $\hat{\theta}$ is the set of parameters that maximizes the log-likelihood function:
-$$
-    \hat{\theta} = \arg\max_\theta \, \log p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta) = \arg\max_\theta \, \sum_{i=1}^{N} \log p(y_i \mid x_i;\theta)
-$$
-
-Now, lets see how this works in practice. Consider the case of linear regression, where we assume that the output variable $y_i$ is linearly related to the input features $x_i$ through the hypothesis function $y_i = h_\theta(x_i) = \theta^T x_i$ and $\epsilon_i \sim \mathcal{N}(0, \sigma^2)$ as the noise term that captures the random error in the data. We can express this relationship as:
-$$
-    y = X\theta + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2)
-$$
-
-Now, depending upon the type of our model, we can derive the loss function from the log-likelihood function. For example, in the case of linear regression, we assume that the output variable $y_i$ is normally distributed with mean $h_\theta(x_i)$ and variance $\sigma^2$. This leads us to the following log-likelihood function for a single data point:
-
 \begin{align*}
-    \log p(y_i \mid x_i;\theta) &= \log \left( \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(y_i - h_\theta(x_i))^2}{2\sigma^2}\right) \right) \\
-    &= -\frac{1}{2} \log(2\pi\sigma^2) - \frac{(y_i - h_\theta(x_i))^2}{2\sigma^2}
+    \hat{\theta} &= \arg\max_\theta \, \log p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta)\\ 
+                 &= \arg\max_\theta \, \sum_{i=1}^{N} \log p(y_i \mid x_i;\theta)
 \end{align*}
-
-For the entire dataset, the log-likelihood function can be expressed as:
-\begin{align*}
-    \log p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta) &= \sum_{i=1}^{N} \log p(y_i \mid x_i;\theta) \\
-    &= -\frac{N}{2} \log(2\pi\sigma^2) - \frac{1}{2\sigma^2} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2
-\end{align*}
-
-Taking $\arg\max$ with respect to $\theta$, we can see that maximizing the log-likelihood function is equivalent to minimizing the sum of squared errors (SSE) between the predicted and actual output values. This leads us to the loss function for linear regression, which is the mean squared error (MSE):
-\begin{align*}
-    \hat{\theta} &= \arg \max_\theta \log p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta) \\
-    &= \arg \max_\theta \left( \underbrace{-\frac{N}{2} \log(2\pi\sigma^2)}_{constant} - \underbrace{\frac{1}{2\sigma^2} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2}_{dependent\ on\ \theta} \right) \\
-    &= \arg \min_\theta \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2 \qquad \text{(drop constants $\frac{N}{2}\log(2\pi\sigma^2)$ and $\frac{1}{2\sigma^2}$)} \\
-    &= \arg \min_\theta \frac{1}{N} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2 \qquad \text{(dividing by $N > 0$ does not change $\arg\min$)}
-\end{align*}
-
-So Maximizing the log-likelihood function is equivalent to minimizing the mean squared error (MSE) loss function $\frac{1}{N} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2$, which is a common loss function used in linear regression!
-
-As we can see, the importance of relying on hypothesis formulation and using MLE as the principled framework for deriving loss functions cannot be overstated. This is just one example of how MLE can be used to derive loss functions for different types of models in machine learning. 
 
 In the subsequent posts, we will explore how MLE can be used to derive loss functions for other types of models, such as logistic regression and neural networks. So, stay tuned for more insights into the fascinating world of machine learning!
 

@@ -14,12 +14,22 @@ app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
 # Blog posts data structure
 BLOG_POSTS = [
     {
-        'title': 'Hypothesis generation and Maximum Likelihood Estimation',
+        'title': 'Linear regression in depth',
+        'slug': 'aimlj-3-linear-regression',
+        'date': datetime(2026, 7, 4),
+        'category': 'AI/ML',
+        'tags': ['ai', 'ml', 'linear-regression', 'math'],
+        'excerpt': 'Connecting Maximum Likelihood Estimation with Linear regression',
+        'read_time': '30 min read',
+        'type': 'interactive',
+    },
+    {
+        'title': 'Maximum Likelihood Estimation',
         'slug': 'aimlj-2-hypothesis',
         'date': datetime(2026, 6, 27),
         'category': 'AI/ML',
         'tags': ['ai', 'ml', 'ml-principle', 'math'],
-        'excerpt': 'The guiding principle to follow for building models',
+        'excerpt': 'A principled way to come up with loss functions',
         'read_time': '15 min read',
         'type': 'interactive',
     },

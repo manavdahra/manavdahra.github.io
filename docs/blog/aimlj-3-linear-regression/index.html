@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear regression in depth - Manav Dahra</title>
+    <link rel="stylesheet" href="../../static/css/style.css">
+    <link rel="stylesheet" href="../../static/css/pygments.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="../../index.html">Manav Dahra</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="../../index.html" class="">Home</a></li>
+                <li><a href="../../blog/index.html" class="active">Blog</a></li>
+                <li><a href="../../about/index.html" class="">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        
+<article class="blog-post">
+    <header class="post-header">
+        <div class="container-narrow">
+            <div class="post-meta-top">
+                <span class="post-category">AI/ML</span>
+                <span class="post-date">July 04, 2026</span>
+            </div>
+            <h1 class="post-title-large">Linear regression in depth</h1>
+            <p class="post-excerpt-large">Connecting Maximum Likelihood Estimation with Linear regression</p>
+            <div class="post-meta-bottom">
+                <span class="post-read-time">30 min read</span>
+                <div class="post-tags-large">
+                    
+                    <span class="tag">ai</span>
+                    
+                    <span class="tag">ml</span>
+                    
+                    <span class="tag">ml-principle</span>
+                    
+                    <span class="tag">math</span>
+                    
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="post-content">
+        <div class="container-narrow">
+            <h2>Linear Regression</h2>
+<p>Armed with the knowledge of Maximum Likelihood Estimation (MLE), we can now explore the concept of Linear Regression. Linear Regression is a fundamental statistical method used to model the relationship between a dependent variable and one or more independent variables. It assumes that this relationship can be approximated by a linear equation.</p>
+<h3>Hypothesis Formulation:</h3>
+<p>Like before, we will start with a dataset that we have sampled from a population. The dataset consists of pairs of observations $(x_i, y_i)$, where $x_i \in \mathbb{R}^n$ represents the independent variable (or feature) and $y_i \in \mathbb{R}$ represents the dependent variable (or target). The goal of linear regression is to find the best-fitting curve that minimizes the difference between the predicted values and the actual observed values. We will call the predicted values $\hat{y_i}$, which are obtained from the linear regression model.</p>
+<p>If we assume that there exists a linear relationship between the independent variable $x$ and the dependent variable $y$, we can express this relationship mathematically as:
+\begin{align*}
+    y = h_\theta(x) + \epsilon\\ 
+    \implies \epsilon = y - h_\theta(x)
+\end{align*}</p>
+<p>where,
+\begin{align*}
+    h_\theta(x) &= \hat{y} = \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \ldots + \theta_n x_n
+\end{align*}</p>
+<ul>
+<li>$\theta_0$ is the intercept term,</li>
+<li>$\theta_1, \theta_2, \ldots, \theta_n$ are the coefficients (weights) associated with each independent variable. For notational convenience, we can absorb the bias into the parameter vector $\theta$ by augmenting $x_i$ with a constant feature $x_{i,0} = 1$, so that $h_\theta(x_i) = \theta^T x_i$.</li>
+</ul>
+<p>and $\epsilon \sim \mathcal{N}(0, \sigma^2)$ is the error term that accounts for the variability in $y$. The error term $\epsilon$ is the random noise sampled from a normal distribution with zero mean and constant variance $\sigma^2$. This also means that $y - h_\theta(x) \sim \mathcal{N}(0, \sigma^2)$, which implies that the difference between the actual observed value $y$ and the predicted value $\hat{y}$ is normally distributed with zero mean and constant variance $\sigma^2$.</p>
+<blockquote>
+<p>I'll explain in detail what <a href="https://en.wikipedia.org/wiki/Normal_distribution">normal distribution</a> means in future posts</p>
+</blockquote>
+<p>In other words, we can express the probability density function (PDF) of the error term $\epsilon$ as:
+\begin{align*}
+    p(\epsilon) &= \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{\epsilon^2}{2\sigma^2}\right)\\
+    &= \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(y - h_\theta(x))^2}{2\sigma^2}\right)\\
+    &= p(y \mid x;\theta)
+\end{align*}</p>
+<p>i.e. the probability of observing $y$ given $x$ and the parameters $\theta$ is normally distributed with mean $h_\theta(x)$ and variance $\sigma^2$. This is the likelihood function that we will use to estimate the parameters $\theta$ using MLE.</p>
+<h3>Applying Maximum Likelihood Estimation (MLE) to compute loss function:</h3>
+<p>Now, recall that in the previous post, we discussed how MLE can be used to estimate the parameters of a model by maximizing the likelihood function. Which means we need to maximize $p(y_i \mid x_i;\theta)$ to derive the loss function for linear regression. The log-likelihood function for a single observation $(x_i, y_i)$ can be expressed as:</p>
+<p>\begin{align*}
+    \log p(y_i \mid x_i;\theta) &= \log \left( \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(y_i - h_\theta(x_i))^2}{2\sigma^2}\right) \right) \\
+    &= -\frac{1}{2} \log(2\pi\sigma^2) - \frac{(y_i - h_\theta(x_i))^2}{2\sigma^2}
+\end{align*}</p>
+<p>For the entire dataset, the log-likelihood function can be expressed as:
+\begin{align*}
+    \log p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta) &= \sum_{i=1}^{N} \log p(y_i \mid x_i;\theta) \\
+    &= -\frac{N}{2} \log(2\pi\sigma^2) - \frac{1}{2\sigma^2} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2
+\end{align*}</p>
+<p>Taking $\arg\max$ with respect to $\theta$, we get:
+\begin{align*}
+    \hat{\theta} &= \arg \max_\theta \log p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta) \\
+    &= \arg \max_\theta \left( \underbrace{-\frac{N}{2} \log(2\pi\sigma^2)}_{constant} - \underbrace{\frac{1}{2\sigma^2} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2}_{dependent\ on\ \theta} \right) \\
+    &= \arg \min_\theta \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2 \qquad \text{(drop constants $\frac{N}{2}\log(2\pi\sigma^2)$ and $\frac{1}{2\sigma^2}$)} \\
+    &= \arg \min_\theta \frac{1}{N} \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2 \qquad \text{(dividing by $N > 0$ does not change $\arg\min$)}\\
+    &= \text{arg min}_\theta \, \text{MSE}(\theta)
+\end{align*}</p>
+<blockquote>
+<p>So maximizing the log-likelihood function is equivalent to minimizing the mean squared error (MSE) loss function, which is a common loss function used in linear regression!</p>
+<p>Unlike most resources that introduce the MSE loss function as a heuristic, we have derived it from first principles using MLE. This shows that the MSE loss function is not just a convenient choice, but rather a principled one that arises naturally from the assumptions of linear regression and the use of MLE.</p>
+</blockquote>
+<p>This is just one example of how MLE can be used to derive loss functions for different types of models in machine learning. </p>
+<h3>Closed Form Solution:</h3>
+<p>We can also find the closed-form solution for the optimal parameters $\hat{\theta}$ using linear algebra and multivariate calculus.</p>
+<p>Notice that the MSE loss function can be expressed in matrix form as:
+\begin{align*}
+    \sum_{i=1}^{N} (y_i - h_\theta(x_i))^2 &= (y - \theta^T X)^T (y - \theta^T X)\\ 
+    &= y^T y - 2 \theta^T X^T y + \theta^T X^T X \theta
+\end{align*}</p>
+<p>Now, to find the optimal parameters $\hat{\theta}$ that minimize the MSE loss function, we can take the gradient of the MSE loss function with respect to $\theta$ and set it to zero. This will give us the normal equations, which can be solved to obtain the closed-form solution for $\hat{\theta}$.</p>
+<p>\begin{align*}
+    \nabla_\theta \text{MSE}(\theta) &= -2 X^T y + 2 X^T X \theta = 0\\
+    X^T X \theta &= X^T y\\
+    \hat{\theta} &= (X^T X)^{-1} X^T y
+\end{align*}</p>
+<h3>Example:</h3>
+<p>Here I generate synthetic dataset for a 7th degree polynomial and fit a linear regression model to it using the iterative gradient descent method. The dataset consists of 1000 samples with 7 features, and the target variable is generated using a linear function with some added noise. I am using seed 42 to ensure reproducibility of the results. The coefficients of the linear function are randomly generated from a normal distribution with mean 0 and standard deviation 10.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">t</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">PolynomialDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">data_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">coefs</span><span class="o">=</span><span class="p">[])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coefs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">coefs</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">degree</span><span class="p">)</span> <span class="o">*</span> <span class="mi">10</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">data_size</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">coefs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">data_size</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">**</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coefs</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">))],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+</code></pre></div>
+
+<p>And here's how the dataset looks like when plotted:</p>
+<p><img src="../../aiml/linear-regression/dataset.png" alt="Dataset" width="300"/></p>
+<p>Next, we build a linear regression model and initialize its parameters $\theta$ randomly using <a href="https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.kaiming_uniform_">Kaiming Uniform initialisation</a>.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linear</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">LinearRegression</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_feats</span><span class="p">,</span> <span class="n">out_feats</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_feats</span><span class="p">,</span> <span class="n">out_feats</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</code></pre></div>
+
+<p>As can be seen from the code above, we are not using bias term in the linear regression model. More on that later. </p>
+<p>Now, let us train the model using the MSE loss function and the Adam optimizer.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">t</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">Number</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="kn">import</span> <span class="n">Module</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.optim</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdamW</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataLoader</span><span class="p">,</span> <span class="n">Dataset</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">plotly.graph_objects</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">go</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">plotly.subplots</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_subplots</span>
+
+<span class="sd">&quot;&quot;&quot;Class to train the linear regression model using the training dataset and evaluate it on the validation dataset.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Trainer</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> 
+            <span class="n">model</span><span class="p">:</span> <span class="n">Module</span><span class="p">,</span> 
+            <span class="n">train_dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span> 
+            <span class="n">val_dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span>
+            <span class="n">epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> 
+            <span class="n">lr</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> 
+            <span class="n">eps</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_dataset</span> <span class="o">=</span> <span class="n">train_dataset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val_dataset</span> <span class="o">=</span> <span class="n">val_dataset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epochs</span> <span class="o">=</span> <span class="n">epochs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optim</span> <span class="o">=</span> <span class="n">AdamW</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">lr</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">mse_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">predicted</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">target</span> <span class="o">-</span> <span class="n">predicted</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">r2_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">predicted</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Number</span><span class="p">:</span>
+        <span class="n">ss_res</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">target</span> <span class="o">-</span> <span class="n">predicted</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">ss_tot</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">target</span> <span class="o">-</span> <span class="n">target</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">ss_res</span> <span class="o">/</span> <span class="n">ss_tot</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Module</span><span class="p">,</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Method to train the model using the training dataset and evaluate it on the validation dataset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Create data loaders for training and validation datasets</span>
+        <span class="c1"># We use a batch size of 32 and shuffle the training data to ensure that the model sees different samples in each epoch.</span>
+        <span class="n">train_data</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">val_data</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">train_losses</span><span class="p">,</span> <span class="n">val_losses</span><span class="p">,</span> <span class="n">val_r2_scores</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epochs</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Epochs&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>                      <span class="c1"># Set the model to training mode</span>
+            <span class="n">batch_losses</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span> <span class="ow">in</span> <span class="n">train_data</span><span class="p">:</span>
+                <span class="c1"># Forward pass: compute predicted y by passing x to the model</span>
+                <span class="n">predicted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">X_train</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+
+                <span class="c1"># Compute loss - MSE loss function derived from MLE</span>
+                <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">y_train</span><span class="p">,</span> <span class="n">predicted</span><span class="p">)</span>
+
+                <span class="c1"># Backward pass: compute gradient of the loss with respect to model parameters</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>              <span class="c1"># Clear the gradients of all optimized tensors</span>
+                <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>                     <span class="c1"># Backpropagate the loss</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>                   <span class="c1"># Update the model parameters using the optimizer</span>
+                <span class="n">batch_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>    <span class="c1"># Append the loss for this batch to the list of batch losses</span>
+
+            <span class="n">train_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">batch_losses</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch_losses</span><span class="p">))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>                       <span class="c1"># Set the model to evaluation mode</span>
+            <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                <span class="n">all_preds</span><span class="p">,</span> <span class="n">all_targets</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">X_val</span><span class="p">,</span> <span class="n">y_val</span> <span class="ow">in</span> <span class="n">val_data</span><span class="p">:</span>
+                    <span class="n">preds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">X_val</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+                    <span class="n">all_preds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">preds</span><span class="p">)</span>
+                    <span class="n">all_targets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_val</span><span class="p">)</span>
+                <span class="n">all_preds</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">all_preds</span><span class="p">)</span>
+                <span class="n">all_targets</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">all_targets</span><span class="p">)</span>
+                <span class="n">val_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">all_targets</span><span class="p">,</span> <span class="n">all_preds</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+                <span class="n">val_r2_scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r2_score</span><span class="p">(</span><span class="n">all_targets</span><span class="p">,</span> <span class="n">all_preds</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">epoch</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">epochs</span><span class="si">}</span><span class="s2"> | train_loss: </span><span class="si">{</span><span class="n">train_losses</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> | val_loss: </span><span class="si">{</span><span class="n">val_losses</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> | val_R²: </span><span class="si">{</span><span class="n">val_r2_scores</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_loss_curves</span><span class="p">(</span><span class="n">train_losses</span><span class="p">,</span> <span class="n">val_losses</span><span class="p">,</span> <span class="n">val_r2_scores</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_dataset</span><span class="p">)</span>
+</code></pre></div>
+
+<p>I omitted the code for plotting the loss curves for brevity. But you get the idea. MSE loss and <a href="https://en.wikipedia.org/wiki/Coefficient_of_determination">$R^2$</a> score are the metrics that we will use to evaluate the performance of the model on the validation dataset. The $R^2$ score is a statistical measure that represents the proportion of the variance for a dependent variable that's explained by an independent variable or variables in a regression model. It provides an indication of goodness of fit and therefore a measure of how well unseen samples are likely to be predicted by the model, through the proportion of explained variance.</p>
+<details>
+<summary>Click to expand for the formula</summary>
+It is expressed as:
+\begin{align*}
+    R^2 = 1 - \frac{SS_{res}}{SS_{tot}}
+\end{align*}
+
+which is the ratio of the residual sum of squares ($SS_{res} = \sum_i (y_i - \hat{y}_i)^2$) to the total sum of squares ($SS_{tot} = \sum_i (y_i - \bar{y})^2$). The $R^2$ score ranges from 0 to 1, where a score of 1 indicates that the model explains all the variability of the response data around its mean, while a score of 0 indicates that the model does not explain any of the variability of the response data around its mean.
+</details>
+
+<p>Notice the importance of loss function in the backward pass step. The loss function is used to compute the gradients of the model parameters with respect to the loss, which are then used to update the model parameters using the optimizer. The choice of loss function can have a significant impact on the performance of the model, as it determines how well the model is able to fit the training data and generalize to unseen data and that is why we derived the MSE loss function from first principles using MLE, as it is a principled choice that arises naturally from the assumptions of linear regression and the use of MLE.</p>
+<p>Next, wiring everything together, we can train the linear regression model on the synthetic dataset and evaluate its performance on the validation dataset. We will use a learning rate of 1e-3 and train the model for 10000 epochs.</p>
+<div class="codehilite"><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">LinearRegression</span><span class="p">(</span><span class="n">in_feats</span><span class="o">=</span><span class="n">in_feats</span><span class="p">,</span> <span class="n">out_feats</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">PolynomialDataset</span><span class="p">(</span><span class="n">degree</span><span class="o">=</span><span class="n">in_feats</span><span class="p">)</span>
+
+<span class="n">train_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">0.8</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="p">))</span> <span class="c1"># train to test split of 80/20 </span>
+<span class="n">test_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span> <span class="o">-</span> <span class="n">train_size</span>
+<span class="n">train_ds</span><span class="p">,</span> <span class="n">val_ds</span> <span class="o">=</span> <span class="n">random_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="p">[</span><span class="n">train_size</span><span class="p">,</span> <span class="n">test_size</span><span class="p">])</span>
+
+<span class="n">trainer</span> <span class="o">=</span> <span class="n">Trainer</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">train_ds</span><span class="p">,</span> <span class="n">val_ds</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
+<span class="n">model</span><span class="p">,</span> <span class="n">loss_curves_plot</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+<span class="n">loss_curves_plot</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+
+<p>This yields the following loss curves for the training and validation datasets:
+<img src="../../aiml/linear-regression/loss_curves.png" alt="Loss Curves" width="600"/></p>
+        </div>
+    </div>
+    
+    <footer class="post-footer">
+        <div class="container-narrow">
+            <div class="post-footer-content">
+                <p>Thanks for reading! If you found this helpful, feel free to share it or reach out on <a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a>.</p>
+            </div>
+            <div class="post-navigation">
+                <a href="../../blog/index.html" class="btn btn-outline">← Back to Blog</a>
+            </div>
+        </div>
+    </footer>
+</article>
+
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Manav Dahra</h3>
+                    <p>Backend Engineer & AI Interpretability Enthusiast</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <ul class="social-links">
+                        <li><a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a></li>
+                        <li><a href="https://manavdahra.github.io/" target="_blank">Portfolio</a></li>
+                        <li><a href="mailto:manav.dahra@gmail.com">Email</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Topics</h3>
+                    <ul class="topic-links">
+                        <li>Software Engineering</li>
+                        <li>AI Interpretability</li>
+                        <li>Distributed Systems</li>
+                        <li>Machine Learning</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Manav Dahra. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\begin{align}', right: '\\end{align}', display: true},
+                {left: '\\begin{align*}', right: '\\end{align*}', display: true},
+                {left: '\\begin{equation}', right: '\\end{equation}', display: true},
+                {left: '\\begin{equation*}', right: '\\end{equation*}', display: true},
+                {left: '\\begin{gather}', right: '\\end{gather}', display: true},
+                {left: '\\begin{gather*}', right: '\\end{gather*}', display: true}
+            ],
+            throwOnError: false
+        });">
+    </script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                background: '#213636',
+                primaryColor: '#2a4444',
+                primaryTextColor: '#bdb76b',
+                primaryBorderColor: '#bdb76b',
+                lineColor: '#bdb76b',
+                secondaryColor: '#1a2d2d',
+                tertiaryColor: '#2a4444',
+                edgeLabelBackground: '#213636',
+                clusterBkg: '#1a2d2d',
+                titleColor: '#bdb76b',
+                nodeTextColor: '#bdb76b',
+                attributeBackgroundColorOdd: '#2a4444',
+                attributeBackgroundColorEven: '#1a2d2d',
+            }
+        });
+    </script>
+</body>
+</html>
