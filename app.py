@@ -15,12 +15,22 @@ app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
 BLOG_POSTS = [
     {
         'title': 'Linear regression in depth',
-        'slug': 'aimlj-3-linear-regression',
-        'date': datetime(2026, 7, 4),
+        'slug': 'aimlj-4-linear-regression',
+        'date': datetime(2026, 7, 16),
         'category': 'AI/ML',
-        'tags': ['ai', 'ml', 'linear-regression', 'math'],
+        'tags': ['ai', 'ml', 'ml-theory', 'linear-regression', 'math'],
         'excerpt': 'Connecting Maximum Likelihood Estimation with Linear regression',
         'read_time': '30 min read',
+        'type': 'interactive',
+    },
+    {
+        'title': 'Gradient descent algorithm',
+        'slug': 'aimlj-3-gradient-descent',
+        'date': datetime(2026, 7, 4),
+        'category': 'AI/ML',
+        'tags': ['ai', 'ml', 'ml-theory', 'gradient-descent', 'math'],
+        'excerpt': 'How do I even begin tuning so many params ?',
+        'read_time': '45 min read',
         'type': 'interactive',
     },
     {
@@ -28,7 +38,7 @@ BLOG_POSTS = [
         'slug': 'aimlj-2-hypothesis',
         'date': datetime(2026, 6, 27),
         'category': 'AI/ML',
-        'tags': ['ai', 'ml', 'ml-principle', 'math'],
+        'tags': ['ai', 'ml', 'ml-theory', 'ml-principle', 'math'],
         'excerpt': 'A principled way to come up with loss functions',
         'read_time': '15 min read',
         'type': 'interactive',
@@ -38,7 +48,7 @@ BLOG_POSTS = [
         'slug': 'aimlj-1',
         'date': datetime(2026, 6, 24),
         'category': 'AI/ML',
-        'tags': ['ai', 'ml', 'general advice'],
+        'tags': ['ai', 'ml', 'ml-theory', 'general advice'],
         'excerpt': 'The right way to approach ML and why it is important to learn the Math',
         'read_time': '15 min read',
     },
@@ -151,6 +161,11 @@ def serve_aiml_files(filename):
     if filename.endswith('.js'):
         response.headers['Content-Type'] = 'application/javascript'
     return response
+
+@app.route('/notebooks/<path:filename>')
+def serve_notebook_files(filename):
+    """Serve exported notebook HTML files"""
+    return send_from_directory('notebooks', filename)
 
 @app.template_filter('format_date')
 def format_date(date):

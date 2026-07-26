@@ -57,7 +57,7 @@ We do the splitting of the dataset to get an unbiased estimate of how well the m
 
 Now, a natural question arises: What is the loss function and how do we learn the parameters $\theta$ of our hypothesis function $h_\theta$? The answer lies in the concept of **Maximum Likelihood Estimation (MLE)** and **Gradient Descent algorithm**.
 
-What do I mean by Likelihood? In statistics, the likelihood function is a function of the parameters of a statistical model that describes the probability of observing the given data. In other words, it measures how likely it is to observe the data given a set of parameters.
+What do I mean by Likelihood? In statistics, the [likelihood](https://en.wikipedia.org/wiki/Likelihood_function) function is a function of the parameters of a statistical model that describes the probability of observing the given data. In other words, it measures how likely it is to observe the data given a set of parameters.
 
 If $x_i$ is the input features and $y_i$ is the corresponding output variable for the $i$-th data point, we can express the likelihood of the parameters $\theta$ given the data as:
 \begin{align*}
@@ -95,7 +95,7 @@ Now, since we want to maximize this likelihood, we can take $\log$ of this expre
         \hat{\theta} = \arg\max_\theta \, p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta) = \arg\max_\theta \, \prod_{i=1}^{N} p(y_i \mid x_i;\theta)
     $$
     
-    To simplify the optimization problem, we can take the logarithm of the likelihood function, which is a monotonic transformation that preserves the location of the maximum. In other words, the value of $\theta$ that maximizes the likelihood function is the same as the value of $\theta$ that maximizes the log-likelihood function. 
+    Moreover, taking $\log$ is a monotonic transformation that preserves the location of the maximum. In other words, the value of $\theta$ that maximizes the likelihood function is the same as the value of $\theta$ that maximizes the log-likelihood function. 
     
     This is because the logarithm is a strictly increasing function, which means that if $a > b$, then $\log(a) > \log(b)$. Therefore, taking the logarithm of the likelihood function does not change the location of the maximum, but it does make the optimization problem easier to solve.</p>
 </details>
@@ -105,6 +105,7 @@ Now, since we want to maximize this likelihood, we can take $\log$ of this expre
 This leads us to the log-likelihood function, where $\hat{\theta}$ is the set of parameters that maximizes the log-likelihood function:
 \begin{align*}
     \hat{\theta} &= \arg\max_\theta \, \log p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta)\\ 
+                 &= \arg\max_\theta \, \log \prod_{i=1}^{N} p(y_i \mid x_i;\theta)\\
                  &= \arg\max_\theta \, \sum_{i=1}^{N} \log p(y_i \mid x_i;\theta)
 \end{align*}
 

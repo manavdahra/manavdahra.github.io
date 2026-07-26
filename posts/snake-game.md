@@ -233,7 +233,7 @@ The web is the most accessible platform for creative coding. No installation, no
 
 ---
 
-**Want to see the code?** Check out the [source on GitHub](https://github.com/manavdahra/dev-blog) or play around with the demo above. Feel free to fork it and build your own version!
+**Want to see the code?** Check out the [source on GitHub](https://github.com/manavdahra/manavdahra.github.io) or play around with the demo above. Feel free to fork it and build your own version!
 
 ## Additional Resources
 

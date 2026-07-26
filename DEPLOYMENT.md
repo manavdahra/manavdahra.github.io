@@ -25,7 +25,7 @@ Repository Settings → Pages:
 - **Branch**: `main`
 - **Folder**: `/docs`
 
-Site URL: `https://<username>.github.io/dev-blog/`
+Site URL: `https://<username>.github.io/manavdahra.github.io/`
 
 Note: Changes typically propagate within 1-2 minutes.
 
@@ -154,7 +154,7 @@ The `freeze.py` script handles this structure automatically.
 ## Project Structure
 
 ```
-dev-blog/
+manavdahra.github.io/
 ├── app.py              # Flask application (development server)
 ├── freeze.py           # Static site generator
 ├── templates/          # HTML templates

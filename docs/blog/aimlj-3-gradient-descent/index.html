@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gradient descent algorithm - Manav Dahra</title>
+    <link rel="stylesheet" href="../../static/css/style.css">
+    <link rel="stylesheet" href="../../static/css/pygments.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="../../index.html">Manav Dahra</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="../../index.html" class="">Home</a></li>
+                <li><a href="../../blog/index.html" class="active">Blog</a></li>
+                <li><a href="../../about/index.html" class="">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        
+<article class="blog-post">
+    <header class="post-header">
+        <div class="container-narrow">
+            <div class="post-meta-top">
+                <span class="post-category">AI/ML</span>
+                <span class="post-date">July 04, 2026</span>
+            </div>
+            <h1 class="post-title-large">Gradient descent algorithm</h1>
+            <p class="post-excerpt-large">How do I even begin tuning so many params ?</p>
+            <div class="post-meta-bottom">
+                <span class="post-read-time">45 min read</span>
+                <div class="post-tags-large">
+                    
+                    <span class="tag">ai</span>
+                    
+                    <span class="tag">ml</span>
+                    
+                    <span class="tag">ml-theory</span>
+                    
+                    <span class="tag">gradient-descent</span>
+                    
+                    <span class="tag">math</span>
+                    
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="post-content">
+        <div class="container-narrow">
+            <h3>Recap</h3>
+<p>In previous post, I introduced the concept of Maximum Likelihood estimation. Under this concept, we consider our observations $\{(x_i, y_i)\}_{i=1}^N$ as a sample drawn from some underlying distribution $\mathcal{D}$. We also assume that $y$ is a dependent variable on $x$ under some hypothesis function $h_{\theta}(x)$ where $\theta$ are model parameters, and we try to maximise the conditional probability $p(y | x; \theta)$ 
+of observing $y$ when $x$ is given to us.</p>
+<p>Formally, the likelihood function is given by:
+\begin{align*}
+    \mathcal{L}(\theta) = p(y_1, y_2, ..., y_N | x_1, x_2, ..., x_N)
+\end{align*}</p>
+<p>I also showed that in maximising the above function after taking the $\log$ on both sides, we end up with loss function in a principled way.</p>
+<p>To recap, following result was achieved:</p>
+<p>\begin{align*}
+    \hat{\theta} &= \arg\max_\theta \, \sum_{i=1}^{N} \log p(y_i \mid x_i;\theta)\\
+    &= \arg\max_\theta \, \ell(\theta)
+\end{align*}</p>
+<p>the log-likelihood term $\ell(\theta) = \log p(y_i \mid x_i;\theta)$ is our loss function that maps $\ell: \theta \to \R$ (a real valued quantity).</p>
+<h3>How do we find $\arg\max_{\theta}$ ?</h3>
+<p>We take gradient of $\ell(\theta)$ wrt to $\theta$ and set it to 0. 
+i.e 
+\begin{align*}
+    \nabla_{\theta} \arg\max_\theta \, \ell(\theta) = 0
+\end{align*}</p>
+<p>Solving this gives us a closed form solution and we arrive at the optimal parameters $\hat{\theta}$. But as I will show in subsequent posts, it is <strong>not</strong> possible to find a closed form solution of this equation in all the cases.</p>
+<blockquote>
+<p>What now ? does this mean we can't build a good prediction model in such cases ? </p>
+</blockquote>
+<p>We still can! at least an approximately good one.</p>
+<blockquote>
+<p>How ? </p>
+</blockquote>
+<p>Well, what what do we need to find here ? </p>
+<p>$\hat{\theta}$ (the parameters that maximise the probability of observing data distribution) where $\hat{\theta} \in \R^d$ where $d$ is the model dimensions. 
+To find the approximate solution that sits near the $\hat{\theta}$, we can start at some random point $\theta_t$, compute the gradient at that point and do hill climbinging in the direction of the gradient iteratively, we can traverse this path to reach the top of the hill that hopefully takes us very close to exact solution.</p>
+<blockquote>
+<p>Hill climbing ? How do we even implement this ?</p>
+</blockquote>
+<p>At each step, we need to find the direction of gradient and move towards it. </p>
+<p>So, what is the gradient at step $t$ for parameter $\theta$ ? </p>
+<p>$\nabla_{\theta_t} \ell(\theta_t)$</p>
+<p>We need to update our current position vector $\theta_t$ by adding this scaled step in this direction to move towards our solution. This gives us following update rule:
+\begin{align*}
+    \theta_{t+1} := \theta_{t} + \alpha \nabla_{\theta_t} \ell(\theta_t)
+\end{align*}</p>
+<p>where $\alpha$ is some scalar that scales the direction in which we want to move. Taking small steps in the direction of gradient is a better strategy to reach the target point even though it might take many iterations, hence the need for this hyper-parameter.</p>
+<blockquote>
+<p>Wasn't this post about Gradient Descent ? Hill climbing means we are ascending, not descending.</p>
+</blockquote>
+<p>Indeed, the term $\nabla_{\theta_t} \ell(\theta_t)$ is positive valued which makes it ascent not descent. But when you plug in actual values of $\ell(\theta_t)$ for your data distribution this term turns into a descent term with $-\arg\min$ operator and this is very common in practice, hence we generally say Gradient <strong>descent</strong> and not ascent. I'll show a concrete example of this in the next post on Linear regression.</p>
+<blockquote>
+<p>Ok, that's convincing, but how do we know we are "close" to the exact solution ? When do we stop the iterations ?</p>
+</blockquote>
+<p>"closeness" is up to us to decide. We decide what is the convergence criteria which could be based on the fact that parameters/gradients have stopped changing, or max number of iterations have been achieved and the tolerance level of convergence is one of the hyperparameters we get to tune.</p>
+<p>As an example, one way to define convergence is to compute the absolute difference of parameters between subsequent timesteps falling below certain threshold $\epsilon$:
+\begin{align*}
+    |\theta_{t+1} - \theta_t| < \epsilon
+\end{align*}</p>
+<h3>The algorithm</h3>
+<p>If you were able to follow along and are convinced so far, then we get following psuedo-algorithm:</p>
+<p>\begin{align*}
+    \text{while } &|\theta_{t+1} - \theta_t| >= \epsilon:\\
+        & \text{sample $\mathcal{B}$ } \text{from } \mathcal{T}\\
+        & \text{for entry $(x_i, y_i)$ } \text{in } \mathcal{B}:\\
+        & \qquad \theta_{t+1} := \theta_{t} + \alpha \nabla_{\theta_t} \ell(\theta_t | x_i, y_i)
+\end{align*}</p>
+<p>where, $\mathcal{B} = \{(x_i, y_i)\}_{i=1}^b$ is a batch of size $b$ drawn from training data distribution $\mathcal{T}$</p>
+<table>
+<thead>
+<tr>
+<th>Batch size</th>
+<th>Algorithm</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Stochastic Gradient Descent</td>
+<td><ul><li>Fast updates per iteration</li><li>Can escape local minima due to noise</li><li>Works with large datasets</li></ul></td>
+<td><ul><li>Noisy gradients</li><li>Slower convergence</li><li>Hard to parallelize</li></ul></td>
+</tr>
+<tr>
+<td>$b$ (small)</td>
+<td>Mini-batch Gradient Descent</td>
+<td><ul><li>Balance between speed and stability</li><li>Efficient GPU utilization</li><li>Smoother convergence than SGD</li></ul></td>
+<td><ul><li>Requires tuning batch size</li><li>May still get stuck in local minima</li></ul></td>
+</tr>
+<tr>
+<td>$N$ (all data)</td>
+<td>Batch Gradient Descent</td>
+<td><ul><li>Stable convergence</li><li>Exact gradient computation</li><li>Guaranteed convergence for convex functions</li></ul></td>
+<td><ul><li>Very slow for large datasets</li><li>High memory requirements</li><li>May get stuck in local minima</li></ul></td>
+</tr>
+</tbody>
+</table>
+<p>The interactive visualisation below shows the loss surface and the training trajectories of gradient descent with different batch sizes. You can rotate the 3D plot to see how SGD (bs=1) and large-batch GD (bs=64) trace different paths toward the minimum.</p>
+<iframe src="../../notebooks/plots/gradient_descent.html" width="100%" height="700px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
+
+<p>As we can see SGD (bs=1) the path is more noisy and while the oath of large batch (bs=64) gradient descent is more smoother.</p>
+        </div>
+    </div>
+    
+    <footer class="post-footer">
+        <div class="container-narrow">
+            <div class="post-footer-content">
+                <p>Thanks for reading! If you found this helpful, feel free to share it or reach out on <a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a>.</p>
+            </div>
+            <div class="post-navigation">
+                <a href="../../blog/index.html" class="btn btn-outline">← Back to Blog</a>
+            </div>
+        </div>
+    </footer>
+</article>
+
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Manav Dahra</h3>
+                    <p>Backend Engineer & AI Interpretability Enthusiast</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <ul class="social-links">
+                        <li><a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a></li>
+                        <li><a href="https://manavdahra.github.io/" target="_blank">Portfolio</a></li>
+                        <li><a href="mailto:manav.dahra@gmail.com">Email</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Topics</h3>
+                    <ul class="topic-links">
+                        <li>Software Engineering</li>
+                        <li>AI Interpretability</li>
+                        <li>Distributed Systems</li>
+                        <li>Machine Learning</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Manav Dahra. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\begin{align}', right: '\\end{align}', display: true},
+                {left: '\\begin{align*}', right: '\\end{align*}', display: true},
+                {left: '\\begin{equation}', right: '\\end{equation}', display: true},
+                {left: '\\begin{equation*}', right: '\\end{equation*}', display: true},
+                {left: '\\begin{gather}', right: '\\end{gather}', display: true},
+                {left: '\\begin{gather*}', right: '\\end{gather*}', display: true}
+            ],
+            throwOnError: false
+        });">
+    </script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                background: '#213636',
+                primaryColor: '#2a4444',
+                primaryTextColor: '#bdb76b',
+                primaryBorderColor: '#bdb76b',
+                lineColor: '#bdb76b',
+                secondaryColor: '#1a2d2d',
+                tertiaryColor: '#2a4444',
+                edgeLabelBackground: '#213636',
+                clusterBkg: '#1a2d2d',
+                titleColor: '#bdb76b',
+                nodeTextColor: '#bdb76b',
+                attributeBackgroundColorOdd: '#2a4444',
+                attributeBackgroundColorEven: '#1a2d2d',
+            }
+        });
+    </script>
+</body>
+</html>

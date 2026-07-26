@@ -24,6 +24,12 @@ def fix_paths_in_html(html_content, depth=0):
 
     # Fix aiml file paths
     html_content = re.sub(r'src="/aiml/', f'src="{prefix}aiml/', html_content)
+
+    # Fix notebook file paths (including plots subdirectory)
+    html_content = re.sub(r'src="/notebooks/plots/', f'src="{prefix}notebooks/plots/', html_content)
+    html_content = re.sub(r'href="/notebooks/plots/', f'href="{prefix}notebooks/plots/', html_content)
+    html_content = re.sub(r'src="/notebooks/', f'src="{prefix}notebooks/', html_content)
+    html_content = re.sub(r'href="/notebooks/', f'href="{prefix}notebooks/', html_content)
     
     # Fix navigation links based on depth
     if depth == 0:
@@ -116,6 +122,20 @@ def generate_static_site():
         aiml_dst = docs_dir / 'aiml'
         if aiml_src.exists():
             shutil.copytree(aiml_src, aiml_dst)
+
+        # Copy notebook HTML files
+        print("  📓 Copying notebook HTML files...")
+        notebooks_dst = docs_dir / 'notebooks'
+        notebooks_dst.mkdir()
+        for nb_html in Path('notebooks').glob('*.html'):
+            shutil.copy(nb_html, notebooks_dst / nb_html.name)
+        
+        # Copy notebook plot HTML files
+        print("  📊 Copying notebook plot HTML files...")
+        plots_dst = notebooks_dst / 'plots'
+        plots_src = Path('notebooks/plots')
+        if plots_src.exists():
+            shutil.copytree(plots_src, plots_dst)
         
         # Create .nojekyll file
         print("  📝 Creating .nojekyll file")
@@ -144,7 +164,7 @@ def generate_static_site():
     print("   Settings → Pages → Source: 'main branch /docs folder'")
     print()
     print("🌐 Your blog will be available at:")
-    print("   https://yourusername.github.io/dev-blog/")
+    print("   https://manavdahra.github.io/")
 
 if __name__ == '__main__':
     try:

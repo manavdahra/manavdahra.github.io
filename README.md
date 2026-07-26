@@ -69,7 +69,7 @@ This blog is maintained by **Manav Dahra**, a backend engineer with 10 years of 
 ## 📁 Project Structure
 
 ```
-dev-blog/
+manavdahra.github.io/
 ├── app.py              # Flask application
 ├── freeze.py           # Static site generator
 ├── templates/          # Jinja2 templates

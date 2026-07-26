@@ -44,6 +44,8 @@
                     
                     <span class="tag">ml</span>
                     
+                    <span class="tag">ml-theory</span>
+                    
                     <span class="tag">ml-principle</span>
                     
                     <span class="tag">math</span>
@@ -102,7 +104,7 @@ $$</p>
 <p>We do the splitting of the dataset to get an unbiased estimate of how well the model generalizes to unseen data. By keeping the testing set separate and never using it during training, we can evaluate the model's true generalization performance. This also allows us to <em>detect</em> overfitting — if the model performs well on the training set but poorly on the test set, it is a sign that the model has overfit to the training data. However, the split itself does not prevent overfitting; addressing overfitting requires other techniques such as regularization, early stopping, or collecting more data.</p>
 <h3>Maximum Likelihood Estimation (MLE) and deriving the loss function</h3>
 <p>Now, a natural question arises: What is the loss function and how do we learn the parameters $\theta$ of our hypothesis function $h_\theta$? The answer lies in the concept of <strong>Maximum Likelihood Estimation (MLE)</strong> and <strong>Gradient Descent algorithm</strong>.</p>
-<p>What do I mean by Likelihood? In statistics, the likelihood function is a function of the parameters of a statistical model that describes the probability of observing the given data. In other words, it measures how likely it is to observe the data given a set of parameters.</p>
+<p>What do I mean by Likelihood? In statistics, the <a href="https://en.wikipedia.org/wiki/Likelihood_function">likelihood</a> function is a function of the parameters of a statistical model that describes the probability of observing the given data. In other words, it measures how likely it is to observe the data given a set of parameters.</p>
 <p>If $x_i$ is the input features and $y_i$ is the corresponding output variable for the $i$-th data point, we can express the likelihood of the parameters $\theta$ given the data as:
 \begin{align*}
     L(\theta) &= p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta)
@@ -134,7 +136,7 @@ $$</p>
         \hat{\theta} = \arg\max_\theta \, p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta) = \arg\max_\theta \, \prod_{i=1}^{N} p(y_i \mid x_i;\theta)
     $$
 
-    To simplify the optimization problem, we can take the logarithm of the likelihood function, which is a monotonic transformation that preserves the location of the maximum. In other words, the value of $\theta$ that maximizes the likelihood function is the same as the value of $\theta$ that maximizes the log-likelihood function. 
+    Moreover, taking $\log$ is a monotonic transformation that preserves the location of the maximum. In other words, the value of $\theta$ that maximizes the likelihood function is the same as the value of $\theta$ that maximizes the log-likelihood function. 
 
     This is because the logarithm is a strictly increasing function, which means that if $a > b$, then $\log(a) > \log(b)$. Therefore, taking the logarithm of the likelihood function does not change the location of the maximum, but it does make the optimization problem easier to solve.</p>
 </details>
@@ -143,6 +145,7 @@ $$</p>
 <p>This leads us to the log-likelihood function, where $\hat{\theta}$ is the set of parameters that maximizes the log-likelihood function:
 \begin{align*}
     \hat{\theta} &= \arg\max_\theta \, \log p(y_1, y_2, ..., y_N \mid x_1, x_2, ..., x_N;\theta)\\ 
+                 &= \arg\max_\theta \, \log \prod_{i=1}^{N} p(y_i \mid x_i;\theta)\\
                  &= \arg\max_\theta \, \sum_{i=1}^{N} \log p(y_i \mid x_i;\theta)
 \end{align*}</p>
 <p>In the subsequent posts, we will explore how MLE can be used to derive loss functions for other types of models, such as logistic regression and neural networks. So, stay tuned for more insights into the fascinating world of machine learning!</p>

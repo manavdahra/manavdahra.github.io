@@ -32,7 +32,7 @@
         <div class="container-narrow">
             <div class="post-meta-top">
                 <span class="post-category">AI/ML</span>
-                <span class="post-date">July 04, 2026</span>
+                <span class="post-date">July 16, 2026</span>
             </div>
             <h1 class="post-title-large">Linear regression in depth</h1>
             <p class="post-excerpt-large">Connecting Maximum Likelihood Estimation with Linear regression</p>
@@ -43,6 +43,8 @@
                     <span class="tag">ai</span>
                     
                     <span class="tag">ml</span>
+                    
+                    <span class="tag">ml-theory</span>
                     
                     <span class="tag">linear-regression</span>
                     
@@ -145,9 +147,7 @@
 </code></pre></div>
 
 <p>And here's how the dataset looks like when plotted:</p>
-<div style="text-align:center;">
-<img src="../../aiml/linear-regression/dataset.png" alt="Dataset" width="300"/>
-</div>
+<iframe src="../../notebooks/plots/linear_regression_dataset.html" width="100%" height="500px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
 
 <p>Next, we build a linear regression model and initialize its parameters $\theta$ randomly using <a href="https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.kaiming_uniform_">Kaiming Uniform initialisation</a>.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
@@ -281,13 +281,9 @@ which is the ratio of the residual sum of squares ($SS_{res} = \sum_i (y_i - \ha
 
 <h3>Results:</h3>
 <p>This yields the following loss curves for the training and validation datasets:</p>
-<div style="text-align:center;">
-<img src="../../aiml/linear-regression/loss_curves.png" alt="Loss Curves" width="700"/>
-</div>
+<iframe src="../../notebooks/plots/linear_regression_loss_curves.html" width="100%" height="500px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
 
-<div style="text-align:center;">
-<img src="../../aiml/linear-regression/model_fit.png" alt="Model Fit" width="700"/>
-</div>
+<iframe src="../../notebooks/plots/linear_regression_model_fit.html" width="100%" height="500px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
 
 <p>As can be seen from the loss curves, the model is able to fit the training data well and generalize to the validation data, as evidenced by the low MSE loss and high $R^2$ score on the validation dataset. The model is able to capture the underlying linear relationship between the independent and dependent variables while ignoring the noise in the data, as evidenced by the low MSE loss and high $R^2$ score on the validation dataset.</p>
 <h3>Conclusion:</h3>

@@ -110,9 +110,7 @@ class PolynomialDataset(Dataset):
 
 And here's how the dataset looks like when plotted:
 
-<div style="text-align:center;">
-<img src="/aiml/linear-regression/dataset.png" alt="Dataset" width="300"/>
-</div>
+<iframe src="/notebooks/plots/linear_regression_dataset.html" width="100%" height="500px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
 
 Next, we build a linear regression model and initialize its parameters $\theta$ randomly using [Kaiming Uniform initialisation](https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.kaiming_uniform_).
 
@@ -258,13 +256,9 @@ loss_curves_plot.show()
 
 This yields the following loss curves for the training and validation datasets:
 
-<div style="text-align:center;">
-<img src="/aiml/linear-regression/loss_curves.png" alt="Loss Curves" width="700"/>
-</div>
+<iframe src="/notebooks/plots/linear_regression_loss_curves.html" width="100%" height="500px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
 
-<div style="text-align:center;">
-<img src="/aiml/linear-regression/model_fit.png" alt="Model Fit" width="700"/>
-</div>
+<iframe src="/notebooks/plots/linear_regression_model_fit.html" width="100%" height="500px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
 
 As can be seen from the loss curves, the model is able to fit the training data well and generalize to the validation data, as evidenced by the low MSE loss and high $R^2$ score on the validation dataset. The model is able to capture the underlying linear relationship between the independent and dependent variables while ignoring the noise in the data, as evidenced by the low MSE loss and high $R^2$ score on the validation dataset.
 

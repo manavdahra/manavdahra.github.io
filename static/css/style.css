@@ -506,6 +506,48 @@ details p ul li {
     margin: 0;
 }
 
+/* Tables */
+.post-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.post-content thead {
+    background: var(--bg-tertiary);
+}
+
+.post-content th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.post-content td {
+    padding: 0.875rem 1rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.post-content tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.post-content tbody tr:hover {
+    background: var(--bg-tertiary);
+}
+
+.post-content th:not(:last-child),
+.post-content td:not(:last-child) {
+    border-right: 1px solid var(--border-color);
+}
+
 .post-footer {
     padding: 3rem 0;
     border-top: 1px solid var(--border-color);
