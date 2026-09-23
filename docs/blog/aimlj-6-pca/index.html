@@ -58,15 +58,188 @@
     <div class="post-content">
         <div class="container-narrow">
             <h1>Principal component analysis (PCA)</h1>
-<p>In this post, instead of discussing Bias-Variance tradeoff, I want to discuss another important topic in machine learning, which is Principal Component Analysis (PCA). PCA is a statistical technique that is used for dimensionality reduction while preserving as much variance as possible in the data. It transforms the original features into a new set of uncorrelated features called principal components.</p>
-<p>If you remember from my previous post on <a href="../aimlj-5-logistic-regression/index.html">Logistic Regression</a>, we trained a model to predict whether a patient has breast cancer or not based on the 30 features of the <a href="https://huggingface.co/datasets/mnemoraorg/wisconsin-breast-cancer-diagnostic">Wisconsin Breast Cancer dataset</a>. Now, if you take this trained model and share it with your team, you will be bombarded with questions: </p>
+<p>I want to discuss another important topic in machine learning, which is Principal Component Analysis (PCA). PCA is a statistical technique that is used for dimensionality reduction while preserving as much variance as possible in the data. It transforms the original features into a new set of uncorrelated features called principal components.</p>
+<blockquote>
+<p>You may ask, why do we do this ?</p>
+</blockquote>
+<p>The reason is that transforming features into uncorrelated features allows us to break down the problem into smaller pieces and reason about them independently. </p>
+<p>If you remember from my previous post on <a href="../aimlj-5-logistic-regression/index.html">Logistic Regression</a>, we trained a model to predict whether a patient has breast cancer or not based on the 30 features of the <a href="https://huggingface.co/datasets/mnemoraorg/wisconsin-breast-cancer-diagnostic">Wisconsin Breast Cancer dataset</a>. Holding a mental model of all these features interacting with each other to give a result of Malign or Benign is intractable if you are not a domain expert in the field. Our logistic regression model somehow captures those nuances but we don't know how to reason about it. </p>
+<p>So imagine you share this trained model with your team in the organisation and you get bombarded with following questions: </p>
 <blockquote>
 <p>What is really going on with this model? Is it really predicting breast cancer, or just memorizing the data? If we bring in a new patient, how can we be sure that the model will predict correctly?</p>
 </blockquote>
-<p>These are valid questions, and to answer them, we need to understand the data better. To be clear, PCA by itself will not tell us whether the model generalizes - that is what validation tells us. What PCA will do is show us the <em>structure</em> of the data the model is learning from: which directions carry the information, and whether the two tumor classes even separate in a lower-dimensional view. PCA is an unsupervised technique for dimensionality reduction that preserves as much variance as possible in the data, transforming the original features into a new set of uncorrelated features called principal components.</p>
-<p>In this post, we will reduce the 30 features down to 2, visualize the result, and see why the principal components are orthogonal. Under the hood, we will compute them the same way PCA is always computed - through the eigendecomposition of the covariance matrix (or equivalently, the SVD of the centered data) - building directly on the linear algebra we developed in the earlier posts.</p>
-<h2>Mathematical formulation</h2>
-<p>These blogs don't shy away from the math, so let's get into it.</p>
+<p>These are all valid questions, and to answer them with some confidence, we need to understand the data better. PCA is one of the many tools to analyse the data. What it will do is show us the <em>structure</em> of the data the model is learning from: which directions carry the most information, and whether the two tumor classes even separate in a lower-dimensional view. </p>
+<p>Now, I used 2 phrases - "directions which carry most information" and "whether the two classes even separate in lower dimensional view". These are not wishy-washy statements. Bear with me and I will demonstrate what I mean.</p>
+<h3>Digression: Co-Variance and Variance</h3>
+<p>Imagine we have 2 random variables $X, Y \in \R^n$ with $\mathbb{E}[X], \mathbb{E}[Y]$ as their mean values. Then their co-variance is given by</p>
+<p>$\Sigma_{XY} = \text{Cov}(X, Y) = \mathbb{E}[X - \mathbb{E}[X]] \cdot \mathbb{E}[Y - \mathbb{E}[Y]]$</p>
+<p>which evaluates to $\Sigma_{XY} = \mathbb{E}[XY] - \mathbb{E}[X]\mathbb{E}[Y]$</p>
+<p>To get an intuition of the expression $\mathbb{E}[X - \mathbb{E}[X]] \cdot \mathbb{E}[Y - \mathbb{E}[Y]]$, think of it in terms of vectors, we are essentially computing an dot product. The higher the dot product, the more closely aligned they are. Hence, more closely correlated the random variables $X, Y$ are. </p>
+<details>
+    <summary>See dot product and how its related</summary>
+    $$
+        \vec{v} \cdot \vec{u} = |\vec{v}||\vec{u}|\cos(\theta)
+    $$
+
+    and, 
+    $$
+        \cos(\theta) = \frac{\vec{v} \cdot \vec{u}}{|\vec{v}||\vec{u}|}
+    $$
+
+    is similar to 
+    $$
+        \text{Cov}(X, Y) = \frac{1}{N-1} \sum_{i=1}^N (X - \bar{X})(Y - \bar{Y})
+    $$
+
+    $$
+    \vec{v} \sim X - \bar{X}\\
+    \vec{u} \sim Y - \bar{Y}\\
+    \cos(\theta) \sim \text{Cov}(X, Y)
+    $$
+</details>
+
+<blockquote>
+<p>Now, what happens if we take $Y = X$ ? </p>
+</blockquote>
+<p>$$
+\Sigma_{XX} = \mathbb{E}[(X - \mathbb{E}[X]) \cdot (X - \mathbb{E}[X])^T]\\
+= \mathbb{E}[XX^T] - \mathbb{E}[X]\mathbb{E}[X^T]
+$$</p>
+<p>There are some nice properties of $\Sigma_{XX}$.</p>
+<ol>
+<li>It is symmetric, i.e. $\Sigma_{XX} = \Sigma_{XX}^T$</li>
+<li>Diagonal elements are simply $\text{Var}(X_i)$ terms.</li>
+<li>Off-diagonal elements describe how each pair $(X_i, X_j)$ vary wrt each other. </li>
+<li>And, $tr(\Sigma_{XX}) = \sum_{i} Var(X_i)$</li>
+</ol>
+<h2>Directions carrying most information</h2>
+<blockquote>
+<p>Now, imagine that we want to compress random variable $X \in \R^n$ into $X' \in \R^k$ where $k << n$ and still want to retain most of the variance. How can we do this ?</p>
+</blockquote>
+<p>We first center $X$ by computing $Z = X - \mu$ which gives us $\mathbb{E}[Z] = 0$. (We could also scale each feature by its standard deviation, which is a good idea when features are on wildly different scales - but it doesn't change the structure of the derivation, so let's keep it simple.)</p>
+<p>and it can be shown that,
+$$
+\Sigma = \mathbb{E}[ZZ^T]\\
+= \frac{1}{n} \sum_{i=1}^{n} Z^{(i)} (Z^{(i)})^T
+$$</p>
+<p>where $Z^{(i)} \in \R^n$ is the i-th (centered) datapoint written as a column vector.</p>
+<p>And so if we pick a unit vector direction $u \in \R^n$ and project $Z$ on it we get the projection $(Z^{(i)})^T u$ of i-th centered datapoint.</p>
+<p>therefore, taking an average of squared projections over all datapoints gives us
+$$
+\frac{1}{n} \sum_{i=1}^{n} ((Z^{(i)})^T u)^2 = \frac{1}{n} \sum_{i=1}^{n} ((Z^{(i)})^T u)^T ((Z^{(i)})^T u)\\
+= \frac{1}{n} \sum_{i=1}^{n} u^T (Z^{(i)} (Z^{(i)})^T) u\\
+= u^T \left( \frac{1}{n} \sum_{i=1}^{n} Z^{(i)} (Z^{(i)})^T \right) u\\
+= u^T \Sigma u
+$$</p>
+<p>So the variance captured along direction $u$ is exactly $u^T \Sigma u$. Now, given the constraint $||u||_2 = 1$, our problem becomes:</p>
+<p>$$
+u_1 = \argmax_{||u||_2 = 1} \; u^T \Sigma u
+$$</p>
+<p>This is a constrained optimization problem, and the standard tool for it is the method of <a href="https://en.wikipedia.org/wiki/Lagrange_multiplier#Summary_and_rationale">Lagrange multipliers</a>. We encode the constraint $u^T u = 1$ into the objective:</p>
+<p>$$
+\mathcal{L}(u, \lambda) = u^T \Sigma u - \lambda (u^T u - 1)
+$$</p>
+<p>Taking the gradient with respect to $u$ and setting it to zero:</p>
+<p>$$
+\frac{\partial \mathcal{L}}{\partial u} = 2\Sigma u - 2\lambda u = 0 \implies \Sigma u = \lambda u
+$$</p>
+<p>And there it is - <strong>the direction that maximizes variance is an eigenvector of the covariance matrix</strong>, and the variance along it is the corresponding eigenvalue:</p>
+<p>$$
+u_1^T \Sigma u_1 = u_1^T (\lambda_1 u_1) = \lambda_1
+$$</p>
+<p>Since $\Sigma$ is symmetric (property 1 from before), the spectral theorem guarantees it has $n$ real, orthogonal eigenvectors $u_1, \dots, u_n$ with real eigenvalues $\lambda_1 \geq \lambda_2 \geq \dots \geq \lambda_n \geq 0$. If we sort them by eigenvalue, the first eigenvector $u_1$ is our answer: it is the direction of maximum variance, i.e. the <strong>first principal component</strong>.</p>
+<h3>Extending to $k$ dimensions</h3>
+<p>The single-direction result generalizes beautifully: instead of one direction, we want the best $k$-dimensional subspace to project onto. The intuition is that we simply repeat the same game - find the direction of maximum variance, then find the next best direction that is <strong>orthogonal</strong> to the first (so it captures variance the first one missed, rather than re-explaining it), and so on $k$ times. Because each new direction must be orthogonal to the previous ones, the variances they capture simply add up, and the optimal subspace turns out to be the one spanned by the top-$k$ eigenvectors $u_1, \dots, u_k$, capturing $\sum_{j=1}^{k} \lambda_j$ of the total $tr(\Sigma) = \sum_{j=1}^{n} \lambda_j$ variance.</p>
+<p>This gives us a principled way to choose $k$: pick the smallest $k$ such that the <strong>explained variance ratio</strong> $\sum_{j=1}^{k} \lambda_j / \sum_{j=1}^{n} \lambda_j$ is large enough (say, 95%).</p>
+<details>
+    <summary>Full derivation for the k-dimensional case</summary>
+
+    Let $U \in \R^{n \times k}$ be a matrix whose columns are orthonormal vectors, $U^T U = I$. Projecting $Z^{(i)}$ onto this subspace gives $U^T Z^{(i)}$, and the variance captured is:
+
+    $$
+    \frac{1}{n} \sum_{i=1}^{n} ||U^T Z^{(i)}||^2 = \frac{1}{n} \sum_{i=1}^{n} (Z^{(i)})^T U U^T Z^{(i)} = tr(U^T \Sigma U)
+    $$
+
+    Maximizing $tr(U^T \Sigma U)$ subject to $U^T U = I$ gives, by the same Lagrangian argument applied column by column, that the columns of $U$ must be eigenvectors of $\Sigma$. So the optimal $k$-dimensional subspace is spanned by the top-$k$ eigenvectors $u_1, \dots, u_k$, and the variance it captures is:
+
+    $$
+    \sum_{j=1}^{k} \lambda_j
+    $$
+
+    out of the total $tr(\Sigma) = \sum_{j=1}^{n} \lambda_j$.
+</details>
+
+<h3>Empirical evidence</h3>
+<p>We don't need to go far to see PCA in action - we already used it, quietly, in the <a href="../aimlj-5-logistic-regression/index.html">logistic regression post</a>. There, we trained a model on the 30 features of the <a href="https://huggingface.co/datasets/mnemoraorg/wisconsin-breast-cancer-diagnostic">Wisconsin Breast Cancer dataset</a> and reached ~98% validation accuracy. But we hit a wall when trying to <em>show</em> the decision boundary: the boundary is a hyperplane in 30-dimensional space, which no one can draw.</p>
+<p>The way out was PCA. We projected the (normalized) data onto its top-2 principal components - the two orthogonal directions carrying the most variance - and plotted the model's predicted probability across that plane:</p>
+<iframe src="../../notebooks/plots/logistic_regression_decision_boundary_2d.html" width="100%" height="500px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
+
+<p>Three things to notice in this plot, each confirming a claim from the math above:</p>
+<ol>
+<li><strong>Two directions carry almost everything.</strong> The 30 features collapse into 2 coordinates and the data is still spread out and structured - the classes occupy visibly different regions. This is the "directions carrying most information" claim made concrete: the top-2 eigenvectors of the covariance matrix capture the bulk of the variance, so almost nothing important is lost in the projection.</li>
+<li><strong>The classes separate even in 2-D.</strong> Malignant and benign tumors form largely distinct clusters, with only a handful of points in the transition band. This is the second promise from the intro, kept: a linear model achieving ~98% accuracy is <em>consistent</em> with what we see - if the classes separate along the top-variance directions, a hyperplane has an easy job.</li>
+<li><strong>The boundary is still a straight line.</strong> Since the model is linear, its decision boundary remains a line in any linear projection - the $p = 0.5$ contour in the plot. The PCA view didn't distort the geometry; it just made it visible.</li>
+</ol>
+<p>There is also a subtler lesson hiding in the data. Many of the 30 features are derived from one another (<code>area</code> is roughly <code>radius</code>$^2$, <code>compactness</code> is <code>perimeter</code>$^2$/<code>area</code> $- 1$), so the covariance matrix has strongly correlated off-diagonal entries. This is exactly the redundancy PCA is built to exploit: correlated features mean the variance concentrates in a few directions, which is why 30 features compress so cleanly into 2. It also explains why individual logistic regression coefficients were hard to interpret - collinear features trade off against each other - while the PCA view gives a picture that doesn't depend on that arbitrary split.</p>
+<p>One honest caveat: PCA is unsupervised, so the top-variance directions are not guaranteed to be the class-separating directions. Here they happened to align, which is why the 2-D view is so clean - but that is a property of this dataset, not a theorem.</p>
+<h3>Running PCA ourselves</h3>
+<p>To back these observations with numbers, we ran the full PCA pipeline from the blog post on the same data - center, SVD, sort eigenvalues - and looked at what the components actually capture.</p>
+<p>First, the explained variance. The scree plot shows how much variance each component carries individually (left) and cumulatively (right):</p>
+<iframe src="../../notebooks/plots/pca_explained_variance.html" width="100%" height="450px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
+
+<p>The numbers behind the plot:</p>
+<table>
+<thead>
+<tr>
+<th>Components kept</th>
+<th>Variance captured</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>43.9%</td>
+</tr>
+<tr>
+<td>2</td>
+<td>62.9%</td>
+</tr>
+<tr>
+<td>3</td>
+<td>72.5%</td>
+</tr>
+<tr>
+<td>5</td>
+<td>84.7%</td>
+</tr>
+<tr>
+<td>7</td>
+<td>90.9%</td>
+</tr>
+<tr>
+<td>10</td>
+<td>95.1%</td>
+</tr>
+</tbody>
+</table>
+<p>Two lessons here. First, the variance drops off <em>fast</em> - the first component alone carries more than the next five combined, which is the correlated-features story from above made quantitative. Second, and just as important: reaching the 95% threshold takes <strong>10 components, not 2</strong>. This is the honest caveat in numbers - the top-2 view is a <em>visualization</em> tool, not a full compression. It shows us the structure of the data, but a third of the variance still lives in the discarded directions.</p>
+<p>Next, the projection itself - the same top-2 view as the decision boundary plot, but showing the data alone:</p>
+<iframe src="../../notebooks/plots/pca_projection_2d.html" width="100%" height="500px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
+
+<p>Finally, the loadings - which original features drive each component. Each principal component is a linear combination of all 30 features, and the eigenvector entries tell us the weights:</p>
+<iframe src="../../notebooks/plots/pca_loadings.html" width="100%" height="450px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
+
+<p>PC 1 is dominated by the size/shape cluster - <code>concave points</code>, <code>concavity</code>, <code>compactness</code>, <code>perimeter</code>, <code>radius</code>, <code>area</code> - which is exactly the set of mutually correlated features we flagged earlier. PC 2 picks up a genuinely different direction: <code>fractal_dimension</code> and <code>smoothness</code>, features that measure texture rather than size. This is orthogonality in action - the second component cannot re-explain what the first already captured, so it is forced to find independent structure.</p>
+<p>As a final sanity check, we also verified the SVD shortcut numerically: eigendecomposing the covariance matrix $\Sigma = \frac{1}{n} Z^T Z$ directly gives eigenvalues matching $\lambda_j = d_j^2/n$ to within $10^{-15}$. The full notebook with all the code is available <a href="https://github.com/manavdahra/manavdahra.github.io/blob/main/notebooks/pca.ipynb">here</a>.</p>
+<h3>The algorithm</h3>
+<p>Putting it all together, PCA is:</p>
+<ol>
+<li>Center the data: $Z = X - \mu$ (optionally scale by per-feature standard deviation).</li>
+<li>Compute the covariance matrix $\Sigma = \frac{1}{n} Z^T Z$.</li>
+<li>Eigendecompose $\Sigma$ and sort eigenvectors by decreasing eigenvalue.</li>
+<li>Take the top $k$ eigenvectors as columns of $U$.</li>
+<li>Project: $X' = ZU \in \R^{n \times k}$.</li>
+</ol>
         </div>
     </div>
     
