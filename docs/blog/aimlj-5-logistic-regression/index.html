@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logistic regression in depth - Manav Dahra</title>
+    <link rel="stylesheet" href="../../static/css/style.css">
+    <link rel="stylesheet" href="../../static/css/pygments.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="../../index.html">Manav Dahra</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="../../index.html" class="">Home</a></li>
+                <li><a href="../../blog/index.html" class="active">Blog</a></li>
+                <li><a href="../../about/index.html" class="">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        
+<article class="blog-post">
+    <header class="post-header">
+        <div class="container-narrow">
+            <div class="post-meta-top">
+                <span class="post-category">AI/ML</span>
+                <span class="post-date">September 22, 2026</span>
+            </div>
+            <h1 class="post-title-large">Logistic regression in depth</h1>
+            <p class="post-excerpt-large">Connecting Maximum Likelihood Estimation with Logistic regression</p>
+            <div class="post-meta-bottom">
+                <span class="post-read-time">30 min read</span>
+                <div class="post-tags-large">
+                    
+                    <span class="tag">ai</span>
+                    
+                    <span class="tag">ml</span>
+                    
+                    <span class="tag">ml-theory</span>
+                    
+                    <span class="tag">logistic-regression</span>
+                    
+                    <span class="tag">math</span>
+                    
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="post-content">
+        <div class="container-narrow">
+            <h2>Logistic regression</h2>
+<p>Previously, I talked about <a href="../aimlj-4-linear-regression/index.html">Linear regression</a> where I showed how to build a model that predicts real valued continuous outputs in co-domain $R$. For instance, you may have a model that predicts housing prices which are a function of many features like - house size, number of bedrooms, neighbourhood, build quality etc. And even though the name of the methodology says "linear regression", don't be misled by the terminology, it is not restricted to linear functions. Do check out the post if you are not sure about this claim. In this post I will discuss logistic regression in depth. </p>
+<p>Imagine, that instead of predicting housing prices, you'd like to do a categorisation task. Lets take an example, given we have <a href="https://huggingface.co/datasets/mnemoraorg/wisconsin-breast-cancer-diagnostic">breast-cancer</a> dataset, we would like to build a predictive model that can classify if a patient has <code>malignant</code> or <code>benign</code> tumor or not. The input provided to us is in the tabular format which has <code>float64</code> columns and we want to output a label "M" (malignant) or "B" (benign) based on this input. </p>
+<p>Formally, we can say that:</p>
+<p>$X \in \R^n$ and $y \in [0, 1]$ where, $0$ means benign and $1$ means malignant.</p>
+<h3>Why not use linear regression?</h3>
+<p>A natural first thought is to reuse linear regression: fit $z = \theta^T x$ and threshold at some cutoff, say $0.5$. This works poorly for classification for two reasons. </p>
+<ul>
+<li>First, the squared-error loss of linear regression punishes <em>confident correct</em> predictions - a data point with $y = 1$ and predicted value $5$ incurs a large penalty even though the classification is correct. </li>
+<li>Second, the output is unbounded, so extreme feature values dominate the fit and the resulting decision boundary is sensitive to outliers. What we want instead is a model whose output is a <em>probability</em> - bounded between $0$ and $1$.</li>
+</ul>
+<p>We can see both failure modes in one picture. Below is a toy 1-D dataset (tumor size vs malignant/benign) with a single far-away outlier at $x = 20$. The straight line is the ordinary least squares fit; the S-curve is logistic regression trained on the same data:</p>
+<iframe src="../../notebooks/plots/logistic_regression_vs_linear.html" width="100%" height="500px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
+
+<p>Two things to notice:</p>
+<ul>
+<li>The <strong>OLS line escapes $[0, 1]$</strong> - for tumor sizes below $-1$ it predicts negative probabilities, and beyond $13.3$ it predicts values greater than $1$. Neither can be interpreted as a probability.</li>
+<li>The <strong>outlier at $x = 20$ drags the OLS line upward</strong>, shifting its $0.5$-threshold to $x = 6.17$, even though the ten "normal" points suggest the boundary should sit near $5.5$. The logistic fit is barely bothered - its decision boundary lands at $x = 5.45$, right where the data actually changes class. Squared error punishes the outlier's large vertical distance, while the log-loss of logistic regression only cares about <em>which side</em> of the boundary the point falls on.</li>
+</ul>
+<h2>The logistic regression model</h2>
+<p>Logistic regression keeps the linear part and squashes it through the sigmoid function:</p>
+<p>$$
+h_{\theta}(z) = \frac{1}{1 + \exp(-z)}
+$$</p>
+<p>where the linear part $z$ is given by</p>
+<p>$$
+z = \theta^T x \qquad \text{where, } x \in \R^n
+$$</p>
+<p>The sigmoid maps any real number into $(0, 1)$, so $h_{\theta}(x)$ can be interpreted as $p(y = 1 | x; \theta)$ - the probability that the tumor is malignant given the features.</p>
+<p>A property of the sigmoid that we will need later is its derivative. </p>
+<p>Differentiating:</p>
+<p>$$
+\frac{\partial h_{\theta}}{\partial z} = \frac{\exp(-z)}{(1+\exp(-z))^2} = h_{\theta} (1 - h_{\theta})
+$$</p>
+<p>And by the chain rule, the derivative with respect to the parameters is:</p>
+<p>$$
+\boxed{\frac{\partial h_{\theta}}{\partial \theta} = h_{\theta} (1 - h_{\theta}) x}
+$$</p>
+<blockquote>
+<p>Notice how clean this is - the derivative of the sigmoid is expressible in terms of the sigmoid itself.</p>
+</blockquote>
+<p>A plot makes both the function and this property tangible. Notice in the lower panel how the derivative peaks at exactly $0.25$ where $z = 0$ (the sigmoid is steepest at its midpoint) and flattens to zero at both tails - this is the vanishing-gradient behaviour that feature normalization protects us from:</p>
+<iframe src="../../notebooks/plots/sigmoid_and_its_derivative.html" width="100%" height="500px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
+
+<h2>Maximum likelihood estimation connection</h2>
+<blockquote>
+<p>Where does the training objective come from? You ask</p>
+</blockquote>
+<p>We can derive it from first principles. If we think of the tumor diagnosis as a random variable $y$ distributed over a population of patients, then the probability distribution can be given as:</p>
+<p>$$
+p(y|x;\theta) = \begin{cases}
+ h_{\theta}(x) & \text{if } y = 1\\
+ 1 - h_{\theta}(x) & \text{if } y = 0
+ \end{cases}
+$$</p>
+<p>This is the <a href="https://en.wikipedia.org/wiki/Bernoulli_distribution">Bernoulli distribution</a>, written concisely as:</p>
+<p>$$
+p(y_i | x_i; \theta) = h_{\theta}(x_i)^{y_i} (1 - h_{\theta}(x_i))^{1-y_i}
+$$</p>
+<p>For our dataset of $N$ patients, assuming the examples are i.i.d., the likelihood of observing all the labels is:</p>
+<p>$$
+L(\theta) = \prod_{i=1}^N p(y_i | x_i; \theta) = \prod_{i=1}^N h_{\theta}(x_i)^{y_i} (1 - h_{\theta}(x_i))^{1-y_i}
+$$</p>
+<p>Taking $\log$ on both sides (which preserves the location of the maximum, since log is monotonic):</p>
+<p>$$
+\log L(\theta) = \sum_{i=1}^N y_i \log h_{\theta}(x_i) + (1 - y_i) \log (1 - h_{\theta}(x_i))
+$$</p>
+<p>For brevity, let $h_i = h_{\theta}(x_i)$. </p>
+<p>Now, like in the earlier posts, we will Maximise the Likelihood by differentiating both sides with respect to $\theta_j$ and setting to $0$:</p>
+<p>$$
+\frac{\partial}{\partial \theta_j} \log L(\theta) = \sum_{i=1}^N \left(\frac{y_i}{h_i} - \frac{1 - y_i}{1 - h_i}\right) \left(h_i \left(1 - h_i\right) x_{ij}\right) = \sum_{i=1}^N \left(y_i - h_i\right) x_{ij}
+$$</p>
+<p>$$
+\boxed{\frac{\partial}{\partial \theta} \log L(\theta) = \sum_{i=1}^N \left(y_i - h_{\theta}(x_i)\right) x_i}
+$$</p>
+<p>Every term in the sum contributes to the derivative with respect to $\theta_j$ through the $j$-th feature $x_{ij}$ of each example, which is why the sum stays intact. </p>
+<blockquote>
+<p>The result has a beautiful interpretation: the gradient is a sum of <em>error residuals</em> $(y_i - h_i)$ weighted by the features.</p>
+</blockquote>
+<h3>Connection with binary cross entropy loss</h3>
+<p>Whats remarkable about this result is that the practice of using <a href="https://docs.pytorch.org/docs/2.14/generated/torch.nn.BCELoss.html">BCELoss</a> also matches it</p>
+<p>$$
+\text{BCE}(\theta) = -\frac{1}{N} \sum_{i=1}^N \left[ y_i \log h_{\theta}(x_i) + (1 - y_i) \log (1 - h_{\theta}(x_i)) \right] = -\frac{1}{N} \log L(\theta)
+$$</p>
+<p>So BCE is simply the negative average log-likelihood, and its gradient is:</p>
+<p>$$
+\nabla_{\theta} \text{BCE}(\theta) = -\frac{1}{N} \sum_{i=1}^N \left(y_i - h_{\theta}(x_i)\right) x_i
+$$</p>
+<p>Therefore, minimizing BCE loss is exactly the same as maximizing the log-likelihood. When <code>loss.backward()</code> runs in the training loop, it performs gradient <em>descent</em> on BCE, which is gradient <em>ascent</em> on $\log L(\theta)$.</p>
+<h2>Pre-processing the dataset</h2>
+<p>Now, lets come back to our breast cancer classification problem. Before we even build the model and run a training loop, we need to first pre-process our dataset. Models are only as good as the data on which they are trained. If you feed them garbage data, what you'll get back is grabage.</p>
+<p>Not only that, it is very important to be careful of what you feed to the model so it doesn't leak any information about its labels/outputs. </p>
+<p>More concretely put, our <a href="https://huggingface.co/datasets/mnemoraorg/wisconsin-breast-cancer-diagnostic">dataset</a> has a few columns that leak information or are not useful: <code>id</code> (a unique identifier), <code>diagnosis</code> (the label itself) and an unnamed empty column. We need to drop such columns, map the labels <code>M</code>/<code>B</code> to <code>1</code>/<code>0</code>, and split into train and test sets.</p>
+<blockquote>
+<p>Why drop <code>id</code> column you may ask ?</p>
+</blockquote>
+<details>
+    <summary>Click here to expand</summary>
+    If `id` column is not dropped then the model will memorize the outputs on that column instead of recognising any meaningful patterns in the data.
+
+    Models look for the most optimal way to get answers and will always follow the path of least resistance. If memorisation helps, then that is what a model will do.
+</details>
+
+<p>Another step that matters a lot in practice is <strong>feature normalization</strong>. The features in this dataset live at wildly different scales - <code>area</code> is in the hundreds to thousands while <code>smoothness</code> is around $0.1$. If we feed these raw values into $z = \theta^T x$, the logits explode, the sigmoid saturates at exactly $0$ or $1$, and gradients vanish. The fix is z-score standardization:</p>
+<p>$$
+x' = \frac{x - \mu}{\sigma}
+$$</p>
+<p>A subtle but important detail: the mean $\mu$ and standard deviation $\sigma$ are computed on the <strong>train split only</strong>, then applied to both train and test. Computing statistics on the test set would leak information about it into training.</p>
+<h2>The model in PyTorch</h2>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">LogisticRegression</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">W</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,)))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">x</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">W</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span>
+        <span class="k">return</span> <span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+</code></pre></div>
+
+<p>This is a direct translation of $h_{\theta}(x) = \sigma(\theta^T x)$ - a weight vector $W$, a bias $b$, and a sigmoid on the logits.</p>
+<h2>Training loop</h2>
+<p>The training loop follows the same skeleton as linear regression: for each batch, compute predictions, compute the loss, backpropagate, and let the optimizer take a step. The two things that change are the loss function (BCE instead of MSE) and the metric (accuracy instead of $R^2$ - $R^2$ is a regression metric and behaves badly for classification).</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">ds</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+    <span class="n">X_train</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">with_transform</span><span class="p">(</span><span class="n">to_features</span><span class="p">),</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">X_val</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="s2">&quot;test&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">with_transform</span><span class="p">(</span><span class="n">to_features</span><span class="p">),</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">opt</span> <span class="o">=</span> <span class="n">AdamW</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">lr</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
+
+    <span class="n">losses</span><span class="p">,</span> <span class="n">scores</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
+        <span class="n">batch_losses</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">X_train</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+            <span class="n">predicted</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">])</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">binary_cross_entropy</span><span class="p">(</span><span class="n">predicted</span><span class="p">,</span> <span class="n">target</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+            <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+            <span class="n">opt</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+            <span class="n">batch_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+
+        <span class="n">losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">batch_losses</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">batch_losses</span><span class="p">))</span>
+
+        <span class="c1"># Evaluate accuracy on the whole validation set</span>
+        <span class="n">correct</span><span class="p">,</span> <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+        <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">X_val</span><span class="p">:</span>
+                <span class="n">predicted</span> <span class="o">=</span> <span class="p">(</span><span class="n">model</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+                <span class="n">correct</span> <span class="o">+=</span> <span class="p">(</span><span class="n">predicted</span> <span class="o">==</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                <span class="n">total</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">])</span>
+        <span class="n">scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">correct</span> <span class="o">/</span> <span class="n">total</span><span class="p">)</span>
+</code></pre></div>
+
+<p>A few points worth noting:</p>
+<ul>
+<li><strong>Accuracy</strong> is computed by thresholding the predicted probability at $0.5$ and counting matches against the labels, over the <em>whole</em> validation set rather than averaging per-batch accuracies (which would misweight the last, smaller batch).</li>
+<li><strong><code>t.no_grad()</code></strong> wraps the evaluation pass since we don't need gradients there.</li>
+<li>The gradient step order is <code>zero_grad()</code> → <code>backward()</code> → <code>step()</code>, so each batch's gradients don't accumulate into the next.</li>
+</ul>
+<h2>Results</h2>
+<p>Training for 1000 epochs with AdamW (<code>lr=1e-4</code>), the loss falls from about $5.5$ to $0.05$ and the validation accuracy climbs from coin-flip to <strong>98.2%</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">Epoch</span><span class="o">:</span><span class="w"> </span><span class="mi">100</span><span class="w">  </span><span class="n">Loss</span><span class="o">:</span><span class="w"> </span><span class="mf">1.905</span><span class="w">  </span><span class="n">Accuracy</span><span class="o">:</span><span class="w"> </span><span class="mf">0.246</span>
+<span class="n">Epoch</span><span class="o">:</span><span class="w"> </span><span class="mi">200</span><span class="w">  </span><span class="n">Loss</span><span class="o">:</span><span class="w"> </span><span class="mf">0.523</span><span class="w">  </span><span class="n">Accuracy</span><span class="o">:</span><span class="w"> </span><span class="mf">0.737</span>
+<span class="n">Epoch</span><span class="o">:</span><span class="w"> </span><span class="mi">300</span><span class="w">  </span><span class="n">Loss</span><span class="o">:</span><span class="w"> </span><span class="mf">0.227</span><span class="w">  </span><span class="n">Accuracy</span><span class="o">:</span><span class="w"> </span><span class="mf">0.947</span>
+<span class="n">Epoch</span><span class="o">:</span><span class="w"> </span><span class="mi">400</span><span class="w">  </span><span class="n">Loss</span><span class="o">:</span><span class="w"> </span><span class="mf">0.133</span><span class="w">  </span><span class="n">Accuracy</span><span class="o">:</span><span class="w"> </span><span class="mf">0.965</span>
+<span class="n">Epoch</span><span class="o">:</span><span class="w"> </span><span class="mi">500</span><span class="w">  </span><span class="n">Loss</span><span class="o">:</span><span class="w"> </span><span class="mf">0.095</span><span class="w">  </span><span class="n">Accuracy</span><span class="o">:</span><span class="w"> </span><span class="mf">0.965</span>
+<span class="n">Epoch</span><span class="o">:</span><span class="w"> </span><span class="mi">600</span><span class="w">  </span><span class="n">Loss</span><span class="o">:</span><span class="w"> </span><span class="mf">0.076</span><span class="w">  </span><span class="n">Accuracy</span><span class="o">:</span><span class="w"> </span><span class="mf">0.982</span>
+<span class="o">...</span>
+<span class="n">Epoch</span><span class="o">:</span><span class="w"> </span><span class="mi">1000</span><span class="w"> </span><span class="n">Loss</span><span class="o">:</span><span class="w"> </span><span class="mf">0.054</span><span class="w">  </span><span class="n">Accuracy</span><span class="o">:</span><span class="w"> </span><span class="mf">0.982</span>
+</code></pre></div>
+
+<p>The loss curve shows smooth, monotone-ish descent and the accuracy curve plateaus once the model has found the best separating hyperplane it can.</p>
+<iframe src="../../notebooks/plots/logistic_regression_loss_curves.html" width="100%" height="500px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
+
+<h2>The decision boundary</h2>
+<p>Because the model is linear, its decision boundary - the set of points where $h_{\theta}(x) = 0.5$, equivalently $\theta^T x + b = 0$ - is a hyperplane in the $n$-dimensional feature space. With $30$ features we cannot draw it directly, but the fact that it <em>is</em> a hyperplane is exactly what makes logistic regression interpretable: each weight $\theta_j$ tells us how the log-odds of malignancy change when feature $j$ increases by one unit (holding others fixed).</p>
+<p>To <em>see</em> the boundary, we can project the data onto its top-2 principal components. Since the model is linear, its boundary remains a straight line in this view - the contour below shows the model's predicted probability across the plane, with the transition band marking $p = 0.5$:</p>
+<iframe src="../../notebooks/plots/logistic_regression_decision_boundary_2d.html" width="100%" height="500px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
+
+<p>We can also plot decision boundary in 3-D but I'll leave that for the readers to explore. If you are really curious and want to explore, please find the link to the notebook at the end of this post.</p>
+<p>One caveat on interpretation: many features in this dataset are derived from one another (<code>area</code> is roughly <code>radius</code>$^2$, <code>compactness</code> is <code>perimeter</code>$^2$/<code>area</code> $- 1$), so the weights on collinear features can trade off against each other without changing predictions. The <em>predictions</em> are unaffected, but individual coefficients should be interpreted with care.</p>
+<p>This also means that we can have far less complex model (i.e. with lesser number of weight parameters) which can reduce any amount of overfitting we have. This relates to a very important concent in ML which is called Bias-Variance tradeoff which I will discuss in later posts. </p>
+<h2>Summary</h2>
+<ul>
+<li>Logistic regression = linear model + sigmoid, producing a probability instead of an unbounded value.</li>
+<li>The sigmoid's derivative $h(1-h)$ makes the MLE gradient collapse to the clean residual form $\sum_i (y_i - h_i) x_i$.</li>
+<li>BCE loss is exactly the negative log-likelihood, so minimizing it <em>is</em> maximum likelihood estimation.</li>
+<li>Normalizing features (with statistics from the train split only) is essential - without it the sigmoid saturates and learning stalls.</li>
+<li>On the breast cancer dataset, this simple model reaches ~98% validation accuracy.</li>
+</ul>
+<p>The full notebook with code, loss curves and plots is available <a href="https://github.com/manavdahra/manavdahra.github.io/blob/main/notebooks/logistic_regression.ipynb">here</a>. </p>
+        </div>
+    </div>
+    
+    <footer class="post-footer">
+        <div class="container-narrow">
+            <div class="post-footer-content">
+                <p>Thanks for reading! If you found this helpful, feel free to share it or reach out on <a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a>.</p>
+            </div>
+            <div class="post-navigation">
+                <a href="../../blog/index.html" class="btn btn-outline">← Back to Blog</a>
+            </div>
+        </div>
+    </footer>
+</article>
+
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Manav Dahra</h3>
+                    <p>Backend Engineer & AI Interpretability Enthusiast</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <ul class="social-links">
+                        <li><a href="https://www.linkedin.com/in/manav-dahra" target="_blank">LinkedIn</a></li>
+                        <li><a href="https://manavdahra.github.io/" target="_blank">Portfolio</a></li>
+                        <li><a href="mailto:manav.dahra@gmail.com">Email</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Topics</h3>
+                    <ul class="topic-links">
+                        <li>Software Engineering</li>
+                        <li>AI Interpretability</li>
+                        <li>Distributed Systems</li>
+                        <li>Machine Learning</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Manav Dahra. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\begin{align}', right: '\\end{align}', display: true},
+                {left: '\\begin{align*}', right: '\\end{align*}', display: true},
+                {left: '\\begin{equation}', right: '\\end{equation}', display: true},
+                {left: '\\begin{equation*}', right: '\\end{equation*}', display: true},
+                {left: '\\begin{gather}', right: '\\end{gather}', display: true},
+                {left: '\\begin{gather*}', right: '\\end{gather*}', display: true}
+            ],
+            throwOnError: false
+        });">
+    </script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                background: '#213636',
+                primaryColor: '#2a4444',
+                primaryTextColor: '#bdb76b',
+                primaryBorderColor: '#bdb76b',
+                lineColor: '#bdb76b',
+                secondaryColor: '#1a2d2d',
+                tertiaryColor: '#2a4444',
+                edgeLabelBackground: '#213636',
+                clusterBkg: '#1a2d2d',
+                titleColor: '#bdb76b',
+                nodeTextColor: '#bdb76b',
+                attributeBackgroundColorOdd: '#2a4444',
+                attributeBackgroundColorEven: '#1a2d2d',
+            }
+        });
+    </script>
+</body>
+</html>

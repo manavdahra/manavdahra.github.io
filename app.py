@@ -14,6 +14,16 @@ app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
 # Blog posts data structure
 BLOG_POSTS = [
     {
+        'title': 'Logistic regression in depth',
+        'slug': 'aimlj-5-logistic-regression',
+        'date': datetime(2026, 9, 22),
+        'category': 'AI/ML',
+        'tags': ['ai', 'ml', 'ml-theory', 'logistic-regression', 'math'],
+        'excerpt': 'Connecting Maximum Likelihood Estimation with Logistic regression',
+        'read_time': '30 min read',
+        'type': 'interactive',
+    },
+    {
         'title': 'Linear regression in depth',
         'slug': 'aimlj-4-linear-regression',
         'date': datetime(2026, 7, 16),
@@ -133,9 +143,13 @@ def blog_post(slug):
             content = re.sub(r'\$[^\$\n]+?\$', stash_math, content)
             # Convert markdown to HTML
             html_content = markdown.markdown(content, extensions=['fenced_code', 'codehilite', 'tables'])
-            # Restore math expressions
-            for i, block in enumerate(math_blocks):
-                html_content = html_content.replace(f'MATHSTASH{i}END', block)
+            # Restore math expressions.
+            # Restore in reverse order: stashing can nest (e.g. `\begin{cases}`
+            # inside a `$$...$$` block), and the outer block is stashed last with
+            # the highest index. Unwrapping outer blocks first re-exposes the
+            # inner markers, which are then restored on a later (lower) iteration.
+            for i in range(len(math_blocks) - 1, -1, -1):
+                html_content = html_content.replace(f'MATHSTASH{i}END', math_blocks[i])
             post['content'] = html_content
     else:
         post['content'] = '<p>Content coming soon...</p>'
