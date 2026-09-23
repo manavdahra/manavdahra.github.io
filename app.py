@@ -14,6 +14,15 @@ app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
 # Blog posts data structure
 BLOG_POSTS = [
     {
+        'title': 'Principal Component Analysis in depth',
+        'slug': 'aimlj-6-pca',
+        'date': datetime(2026, 9, 23),
+        'category': 'AI/ML',
+        'tags': ['ai', 'ml', 'ml-theory', 'pca', 'math'],
+        'excerpt': 'Understanding PCA and its connection to linear algebra',
+        'read_time': '30 min read',
+    },
+    {
         'title': 'Logistic regression in depth',
         'slug': 'aimlj-5-logistic-regression',
         'date': datetime(2026, 9, 22),
