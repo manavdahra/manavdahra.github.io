@@ -63,7 +63,7 @@
 <p>You may ask, why do we do this ?</p>
 </blockquote>
 <p>The reason is that transforming features into uncorrelated features allows us to break down the problem into smaller pieces and reason about them independently. </p>
-<p>If you remember from my previous post on <a href="../aimlj-5-logistic-regression/index.html">Logistic Regression</a>, we trained a model to predict whether a patient has breast cancer or not based on the 30 features of the <a href="https://huggingface.co/datasets/mnemoraorg/wisconsin-breast-cancer-diagnostic">Wisconsin Breast Cancer dataset</a>. Holding a mental model of all these features interacting with each other to give a result of Malign or Benign is intractable if you are not a domain expert in the field. Our logistic regression model somehow captures those nuances but we don't know how to reason about it. </p>
+<p>If you remember from my previous post on <a href="../aimlj-5-logistic-regression/index.html">Logistic Regression</a>, I trained a model to predict whether a patient has breast cancer or not based on the 30 features of the <a href="https://huggingface.co/datasets/mnemoraorg/wisconsin-breast-cancer-diagnostic">Wisconsin Breast Cancer dataset</a>. Holding a mental model of all these features interacting with each other to give a result of Malign or Benign is intractable if you are not a domain expert in the field. Our logistic regression model somehow captures those nuances but I don't know how to reason about it. </p>
 <p>So imagine you share this trained model with your team in the organisation and you get bombarded with following questions: </p>
 <blockquote>
 <p>What is really going on with this model? Is it really predicting breast cancer, or just memorizing the data? If we bring in a new patient, how can we be sure that the model will predict correctly?</p>
@@ -169,21 +169,8 @@ $$</p>
     out of the total $tr(\Sigma) = \sum_{j=1}^{n} \lambda_j$.
 </details>
 
-<h3>Empirical evidence</h3>
-<p>We don't need to go far to see PCA in action - we already used it, quietly, in the <a href="../aimlj-5-logistic-regression/index.html">logistic regression post</a>. There, we trained a model on the 30 features of the <a href="https://huggingface.co/datasets/mnemoraorg/wisconsin-breast-cancer-diagnostic">Wisconsin Breast Cancer dataset</a> and reached ~98% validation accuracy. But we hit a wall when trying to <em>show</em> the decision boundary: the boundary is a hyperplane in 30-dimensional space, which no one can draw.</p>
-<p>The way out was PCA. We projected the (normalized) data onto its top-2 principal components - the two orthogonal directions carrying the most variance - and plotted the model's predicted probability across that plane:</p>
-<iframe src="../../notebooks/plots/logistic_regression_decision_boundary_2d.html" width="100%" height="500px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
-
-<p>Three things to notice in this plot, each confirming a claim from the math above:</p>
-<ol>
-<li><strong>Two directions carry almost everything.</strong> The 30 features collapse into 2 coordinates and the data is still spread out and structured - the classes occupy visibly different regions. This is the "directions carrying most information" claim made concrete: the top-2 eigenvectors of the covariance matrix capture the bulk of the variance, so almost nothing important is lost in the projection.</li>
-<li><strong>The classes separate even in 2-D.</strong> Malignant and benign tumors form largely distinct clusters, with only a handful of points in the transition band. This is the second promise from the intro, kept: a linear model achieving ~98% accuracy is <em>consistent</em> with what we see - if the classes separate along the top-variance directions, a hyperplane has an easy job.</li>
-<li><strong>The boundary is still a straight line.</strong> Since the model is linear, its decision boundary remains a line in any linear projection - the $p = 0.5$ contour in the plot. The PCA view didn't distort the geometry; it just made it visible.</li>
-</ol>
-<p>There is also a subtler lesson hiding in the data. Many of the 30 features are derived from one another (<code>area</code> is roughly <code>radius</code>$^2$, <code>compactness</code> is <code>perimeter</code>$^2$/<code>area</code> $- 1$), so the covariance matrix has strongly correlated off-diagonal entries. This is exactly the redundancy PCA is built to exploit: correlated features mean the variance concentrates in a few directions, which is why 30 features compress so cleanly into 2. It also explains why individual logistic regression coefficients were hard to interpret - collinear features trade off against each other - while the PCA view gives a picture that doesn't depend on that arbitrary split.</p>
-<p>One honest caveat: PCA is unsupervised, so the top-variance directions are not guaranteed to be the class-separating directions. Here they happened to align, which is why the 2-D view is so clean - but that is a property of this dataset, not a theorem.</p>
 <h3>Running PCA ourselves</h3>
-<p>To back these observations with numbers, we ran the full PCA pipeline from the blog post on the same data - center, SVD, sort eigenvalues - and looked at what the components actually capture.</p>
+<p>To back these observations with numbers, I ran the full PCA pipeline from the <a href="../aimlj-5-logistic-regression/index.html">logistic regression</a> blog post on the same data - center, SVD, sort eigenvalues - and looked at what the components actually capture.</p>
 <p>First, the explained variance. The scree plot shows how much variance each component carries individually (left) and cumulatively (right):</p>
 <iframe src="../../notebooks/plots/pca_explained_variance.html" width="100%" height="450px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
 
@@ -230,16 +217,15 @@ $$</p>
 <iframe src="../../notebooks/plots/pca_loadings.html" width="100%" height="450px" frameborder="0" style="border: none; border-radius: 8px; overflow: hidden;" scrolling="no"></iframe>
 
 <p>PC 1 is dominated by the size/shape cluster - <code>concave points</code>, <code>concavity</code>, <code>compactness</code>, <code>perimeter</code>, <code>radius</code>, <code>area</code> - which is exactly the set of mutually correlated features we flagged earlier. PC 2 picks up a genuinely different direction: <code>fractal_dimension</code> and <code>smoothness</code>, features that measure texture rather than size. This is orthogonality in action - the second component cannot re-explain what the first already captured, so it is forced to find independent structure.</p>
-<p>As a final sanity check, we also verified the SVD shortcut numerically: eigendecomposing the covariance matrix $\Sigma = \frac{1}{n} Z^T Z$ directly gives eigenvalues matching $\lambda_j = d_j^2/n$ to within $10^{-15}$. The full notebook with all the code is available <a href="https://github.com/manavdahra/manavdahra.github.io/blob/main/notebooks/pca.ipynb">here</a>.</p>
-<h3>The algorithm</h3>
-<p>Putting it all together, PCA is:</p>
+<h3>Putting it all together, PCA is:</h3>
 <ol>
-<li>Center the data: $Z = X - \mu$ (optionally scale by per-feature standard deviation).</li>
-<li>Compute the covariance matrix $\Sigma = \frac{1}{n} Z^T Z$.</li>
-<li>Eigendecompose $\Sigma$ and sort eigenvectors by decreasing eigenvalue.</li>
-<li>Take the top $k$ eigenvectors as columns of $U$.</li>
-<li>Project: $X' = ZU \in \R^{n \times k}$.</li>
+<li>Useful for dimensionality reduction, visualization, and understanding the structure of high-dimensional data.</li>
+<li>A linear transformation that finds uncorrelated directions of maximum variance.</li>
+<li>Implemented via centering, covariance computation, and eigendecomposition.</li>
+<li>Has principled derivation from linear algebra and optimization, with the top-$k$ eigenvectors forming the optimal subspace.</li>
 </ol>
+<p>To checkout the full notebook with code and plots, you can find it <a href="https://github.com/manavdahra/manavdahra.github.io/blob/main/notebooks/pca.ipynb">here</a>.</p>
+<p>I hope this post gives you a good understanding of PCA and its connection to linear algebra. In the next post, I will discuss another important topic in machine learning - Bias-Variance tradeoff and how it affects model performance. Stay tuned!</p>
         </div>
     </div>
     
@@ -287,6 +273,10 @@ $$</p>
             </div>
         </div>
     </footer>
+    <!-- Cloudflare Web Analytics -->
+    <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "c63a72b1af2c4f8bbd9bcb29395df193"}'></script>
+    <!-- End Cloudflare Web Analytics -->
+     <!-- Katex -->
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {
@@ -303,6 +293,8 @@ $$</p>
             throwOnError: false
         });">
     </script>
+    <!-- End Katex -->
+     <!-- Mermaid -->
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({
@@ -325,5 +317,6 @@ $$</p>
             }
         });
     </script>
+    <!-- End Mermaid -->
 </body>
 </html>
